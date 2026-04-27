@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
 
@@ -16,6 +16,8 @@ import {
 import { PillButton } from '../../components/home/PillButton';
 import { ProductCard } from '../../components/home/ProductCard';
 import { SectionBadge } from '../../components/home/SectionBadge';
+import { FlashSaleTimer } from '../../components/home/FlashSaleTimer';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { fetchCategories, fetchProducts } from '~/lib/api/catalog';
 import { ApiError } from '~/lib/api/errors';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
@@ -104,8 +106,20 @@ export default function HomeScreen() {
           </View>
 
           {loading ? (
-            <View className="mt-8 items-center py-6">
-              <ActivityIndicator size="large" color="#F83758" />
+            <View className="mt-6">
+              <View className="flex-row gap-4 mb-8">
+                {[1, 2, 3, 4].map((i) => (
+                  <View key={i} className="items-center">
+                    <Skeleton width={62} height={62} borderRadius={31} />
+                    <Skeleton width={40} height={10} style={{ marginTop: 8 }} />
+                  </View>
+                ))}
+              </View>
+              <Skeleton width="100%" height={160} borderRadius={16} />
+              <View className="mt-6 flex-row gap-4">
+                <Skeleton width={160} height={220} borderRadius={16} />
+                <Skeleton width={160} height={220} borderRadius={16} />
+              </View>
             </View>
           ) : error ? (
             <View className="mt-4 rounded-[16px] bg-white p-4">
@@ -115,11 +129,21 @@ export default function HomeScreen() {
             <>
               <CategoryList categories={homeCategories} />
               <HeroPromoBanner />
-              <SectionBadge
-                title="GIảm giá trong ngày"
-                subtitle="22h 55m 20s còn lại"
-                background="#4A8AE8"
-              />
+              
+              <View className="mt-4 flex-row items-center justify-between rounded-[10px] bg-[#4A8AE8] px-3 py-3">
+                <View>
+                  <Text className="text-[16px] font-semibold text-white">Giảm giá trong ngày</Text>
+                  <View className="mt-1 flex-row items-center gap-2">
+                    <Feather name="clock" size={13} color="rgba(255,255,255,0.86)" />
+                    <FlashSaleTimer />
+                  </View>
+                </View>
+                <TouchableOpacity className="flex-row items-center gap-1 rounded-[8px] border border-white/70 px-3 py-[7px]">
+                  <Text className="text-[12px] font-semibold text-white">Xem tất cả</Text>
+                  <Feather name="arrow-right" size={14} color="white" />
+                </TouchableOpacity>
+              </View>
+
               <ProductCarousel products={homeProducts} />
               <SpecialOffersCard />
               <FlatAndHeelsCard />
