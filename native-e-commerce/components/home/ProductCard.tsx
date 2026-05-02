@@ -35,7 +35,7 @@ function ProductCardBase({ product, cardWidth }: Props) {
       onPress={() => router.push(`/product/${encodeURIComponent(product.id)}`)}>
       <View>
         <Image
-          source={{ uri: product.image }}
+          source={{ uri: product.image || 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=60' }}
           className="h-[150px] w-full rounded-[16px]"
           resizeMode="cover"
         />
