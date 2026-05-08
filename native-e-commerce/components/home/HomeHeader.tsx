@@ -38,7 +38,15 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch, onPres
       <View className={`mt-5 h-[48px] flex-row items-center rounded-[14px] bg-white px-4 shadow-sm border ${isFocused ? 'border-[#F97316]' : 'border-transparent'}`}>
         <Feather name="search" size={18} color={isFocused ? "#F97316" : "#BBBBBB"} />
         <TextInput
-          className="ml-[10px] flex-1 text-[14px] text-[#232327] font-medium"
+          style={{
+            flex: 1,
+            marginLeft: 10,
+            fontSize: 14,
+            color: '#232327',
+            fontWeight: '500',
+            backgroundColor: 'transparent',
+            outline: 'none',
+          }}
           placeholder="Bạn đang tìm gì hôm nay?"
           placeholderTextColor="#BBBBBB"
           value={searchValue}

@@ -1,45 +1,20 @@
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React from 'react';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+
 import { resetOnboardingSeen } from '~/lib/onboardingStorage';
 import { useToast } from '~/components/ToastProvider';
 
-type TestRouteItem = {
+type MenuItem = {
+  icon: keyof typeof Feather.glyphMap;
   label: string;
+  sublabel?: string;
   path?: string;
-  variant?: 'primary' | 'outline';
   onPress?: () => void;
+  color?: string;
+  badge?: string;
 };
-
-const TAB_ROUTES: TestRouteItem[] = [
-  { label: 'Home Tab', path: '/(tabs)' },
-  { label: 'Cart Tab', path: '/(tabs)/cart' },
-  { label: 'Order Tab', path: '/(tabs)/order' },
-  { label: 'Account Tab', path: '/(tabs)/account' },
-];
-
-const AUTH_ROUTES: TestRouteItem[] = [
-  { label: 'Login', path: '/(auth)/login' },
-  { label: 'Signup', path: '/(auth)/signup' },
-  { label: 'Forgot Password', path: '/(auth)/forgot' },
-];
-
-const FLOW_ROUTES: TestRouteItem[] = [
-  { label: 'Checkout', path: '/checkout' },
-  { label: 'Payment QR', path: '/payment-qr' },
-  { label: 'Address', path: '/address' },
-  { label: 'Onboarding', path: '/onboarding' },
-  { label: 'Modal', path: '/modal' },
-  { label: 'Payment Success', path: '/payment-success' },
-  { label: 'Checkout Success', path: '/checkout-success' },
-  { label: 'Checkout Failure', path: '/checkout-failure' },
-];
-
-const DETAIL_ROUTES: TestRouteItem[] = [
-  { label: 'Product Detail (sample)', path: '/product/jewelry-set-01' },
-  { label: 'Orders list', path: '/(tabs)/order' },
-  { label: 'Edit Profile', path: '/account/edit' },
-  { label: 'Addresses', path: '/addresses' },
-];
 
 export default function Settings() {
   const router = useRouter();
@@ -47,68 +22,159 @@ export default function Settings() {
 
   const handleResetOnboarding = async () => {
     await resetOnboardingSeen();
-    addToast('success', 'Done', 'Onboarding has been reset. Reopen app to see it again.');
-    console.log('Onboarding has been reset. Reopen app to see it again.');
+    addToast('success', 'Done', 'Onboarding đã được reset.');
   };
 
-  const renderItem = (item: TestRouteItem) => {
-    const isPrimary = item.variant === 'primary';
-
-    return (
-      <TouchableOpacity
-        key={item.label}
-        className={`items-center rounded-lg py-3 ${isPrimary ? 'bg-[#007AFF]' : 'border border-[#007AFF]'}`}
-        onPress={() => {
-          if (item.onPress) {
-            item.onPress();
-            return;
-          }
-
-          if (item.path) {
-            // cast to any to avoid expo-router generated route union type in this test helper
-            router.push(item.path as any);
-          }
-        }}>
-        <Text className={`text-base font-semibold ${isPrimary ? 'text-white' : 'text-[#007AFF]'}`}>
-          {item.label}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
-
-  const actions: TestRouteItem[] = [
-    {
-      label: 'Reset Onboarding',
-      variant: 'outline',
-      onPress: handleResetOnboarding,
-    },
+  const accountItems: MenuItem[] = [
+    { icon: 'user', label: 'Tài khoản của tôi', sublabel: 'Thông tin cá nhân', path: '/account/edit', color: '#F83758' },
+    { icon: 'map-pin', label: 'Địa chỉ giao hàng', sublabel: 'Quản lý địa chỉ', path: '/addresses', color: '#8B5CF6' },
+    { icon: 'shopping-bag', label: 'Đơn hàng của tôi', sublabel: 'Lịch sử mua hàng', path: '/(tabs)/order', color: '#F97316' },
   ];
+
+  const appItems: MenuItem[] = [
+    { icon: 'home', label: 'Trang chủ', path: '/(tabs)', color: '#10B981' },
+    { icon: 'shopping-cart', label: 'Giỏ hàng', path: '/(tabs)/cart', color: '#3B82F6' },
+    { icon: 'credit-card', label: 'Thanh toán', path: '/checkout', color: '#F59E0B' },
+    { icon: 'log-in', label: 'Đăng nhập', path: '/(auth)/login', color: '#6366F1' },
+  ];
+
+  const devItems: MenuItem[] = [
+    { icon: 'refresh-cw', label: 'Reset Onboarding', onPress: handleResetOnboarding, color: '#64748B' },
+    { icon: 'image', label: 'Scan ảnh sản phẩm', path: '/product/jewelry-set-01', color: '#EC4899' },
+    { icon: 'gift', label: 'Payment Success', path: '/payment-success', color: '#10B981' },
+  ];
+
+  const renderMenuItem = (item: MenuItem) => (
+    <TouchableOpacity
+      key={item.label}
+      onPress={() => {
+        if (item.onPress) { item.onPress(); return; }
+        if (item.path) router.push(item.path as any);
+      }}
+      activeOpacity={0.7}
+      className="flex-row items-center gap-4 px-4 py-3.5">
+      <View
+        className="h-10 w-10 items-center justify-center rounded-full"
+        style={{ backgroundColor: (item.color || '#F83758') + '18' }}>
+        <Feather name={item.icon} size={18} color={item.color || '#F83758'} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-[15px] font-medium text-[#1F1F1F]">{item.label}</Text>
+        {item.sublabel ? (
+          <Text className="text-[12px] text-[#9CA3AF]">{item.sublabel}</Text>
+        ) : null}
+      </View>
+      {item.badge ? (
+        <View className="rounded-full bg-[#F83758] px-2 py-0.5">
+          <Text className="text-[10px] font-bold text-white">{item.badge}</Text>
+        </View>
+      ) : null}
+      <Feather name="chevron-right" size={16} color="#C7C7CC" />
+    </TouchableOpacity>
+  );
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Settings' }} />
-      <ScrollView className="flex-1 bg-white" contentContainerClassName="p-5 pb-10">
-        <Text className="text-2xl font-bold text-gray-900">Settings Test Navigator</Text>
-        <Text className="mt-1 text-gray-500">Quick links để test tất cả màn hình chính.</Text>
+      <Stack.Screen options={{ headerShown: false }} />
+      <ScrollView
+        className="flex-1 bg-[#F8F8F8]"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 110 }}>
 
-        <Section title="Tabs">{TAB_ROUTES.map(renderItem)}</Section>
-        <Section title="Auth">{AUTH_ROUTES.map(renderItem)}</Section>
-        <Section title="Flow">{FLOW_ROUTES.map(renderItem)}</Section>
-        <Section title="Dynamic Detail Routes">{DETAIL_ROUTES.map(renderItem)}</Section>
+        {/* Header */}
+        <View className="bg-white px-5 pb-8 pt-14">
+          <Text className="text-[13px] font-semibold uppercase tracking-[2px] text-[#F83758]">
+            Menu
+          </Text>
+          <Text className="mt-1 text-[30px] font-bold text-[#1F1F1F]">Cài đặt</Text>
+        </View>
 
-        <Section title="Actions">{actions.map(renderItem)}</Section>
+        {/* Profile Card */}
+        <View className="mx-4 mt-4 overflow-hidden rounded-[20px] bg-gradient-to-r from-[#F83758] to-[#FF8C69]">
+          <View
+            className="rounded-[20px] p-5"
+            style={{ backgroundColor: '#F83758' }}>
+            <View className="flex-row items-center gap-4">
+              <View className="h-16 w-16 items-center justify-center rounded-full bg-white/20">
+                <Feather name="user" size={28} color="white" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-[18px] font-bold text-white">Style Up</Text>
+                <Text className="text-[13px] text-white/80">Trang sức cao cấp</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => router.push('/account/edit' as any)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-white/20">
+                <Feather name="edit-2" size={16} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="mt-4 flex-row gap-3">
+              {[
+                { label: 'Đơn hàng', value: '12', icon: 'shopping-bag' as const },
+                { label: 'Yêu thích', value: '8', icon: 'heart' as const },
+                { label: 'Đánh giá', value: '5', icon: 'star' as const },
+              ].map((stat) => (
+                <View key={stat.label} className="flex-1 items-center rounded-[14px] bg-white/15 py-3">
+                  <Feather name={stat.icon} size={16} color="white" />
+                  <Text className="mt-1 text-[16px] font-bold text-white">{stat.value}</Text>
+                  <Text className="text-[10px] text-white/80">{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Account Section */}
+        <View className="mx-4 mt-4 overflow-hidden rounded-[20px] bg-white">
+          <Text className="px-4 pt-4 text-[11px] font-semibold uppercase tracking-[1.5px] text-[#9CA3AF]">
+            Tài khoản
+          </Text>
+          {accountItems.map((item, idx) => (
+            <View key={item.label}>
+              {renderMenuItem(item)}
+              {idx < accountItems.length - 1 && (
+                <View className="ml-[72px] h-[1px] bg-[#F3F3F3]" />
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* App Navigation Section */}
+        <View className="mx-4 mt-4 overflow-hidden rounded-[20px] bg-white">
+          <Text className="px-4 pt-4 text-[11px] font-semibold uppercase tracking-[1.5px] text-[#9CA3AF]">
+            Điều hướng nhanh
+          </Text>
+          {appItems.map((item, idx) => (
+            <View key={item.label}>
+              {renderMenuItem(item)}
+              {idx < appItems.length - 1 && (
+                <View className="ml-[72px] h-[1px] bg-[#F3F3F3]" />
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* Dev Tools Section */}
+        <View className="mx-4 mt-4 overflow-hidden rounded-[20px] bg-white">
+          <Text className="px-4 pt-4 text-[11px] font-semibold uppercase tracking-[1.5px] text-[#9CA3AF]">
+            Công cụ Dev
+          </Text>
+          {devItems.map((item, idx) => (
+            <View key={item.label}>
+              {renderMenuItem(item)}
+              {idx < devItems.length - 1 && (
+                <View className="ml-[72px] h-[1px] bg-[#F3F3F3]" />
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* App Version */}
+        <Text className="mt-6 text-center text-[12px] text-[#C4C4C4]">
+          Style Up v1.0.0 · Made with ❤️
+        </Text>
       </ScrollView>
     </>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <View className="mt-7">
-      <Text className="mb-3 text-sm font-semibold uppercase tracking-[1px] text-gray-500">
-        {title}
-      </Text>
-      <View className="gap-3">{children}</View>
-    </View>
   );
 }
