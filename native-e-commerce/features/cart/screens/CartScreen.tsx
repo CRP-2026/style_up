@@ -226,7 +226,7 @@ export default function CartScreen() {
               <SummaryRow label="Total" value={formatCurrency(total)} total />
 
               <View className="mt-4">
-                <Button title="Checkout" onPress={handleCheckoutPress} />
+                <Button title="Thanh toán" onPress={handleCheckoutPress} />
               </View>
             </View>
           </View>

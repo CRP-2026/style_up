@@ -82,7 +82,7 @@ export default function OrdersScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Order',
+          title: 'Đơn hàng',
           headerShadowVisible: false,
         }}
       />
