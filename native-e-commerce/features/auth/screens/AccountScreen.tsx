@@ -195,7 +195,7 @@ export default function AccountScreen() {
               {user.role === 'admin' && (
                 <Pressable
                   className="rounded-xl border border-[#FED7AA] bg-[#FFF7F2] py-4"
-                  onPress={() => router.push('/admin/index' as never)}>
+                  onPress={() => router.push('/admin' as never)}>
                   <View className="flex-row items-center justify-center gap-2">
                     <Ionicons name="shield-checkmark-outline" size={18} color="#F97316" />
                     <Text className="text-center text-base font-semibold text-[#9A3412]">
