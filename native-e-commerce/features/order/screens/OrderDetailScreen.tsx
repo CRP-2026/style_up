@@ -96,7 +96,7 @@ export default function OrderDetailScreen() {
     try {
       const updated = await cancelOrder(order.id);
       setOrder(updated);
-      addToast('success', L.common.success, 'Đã huỷ đơn hàng.');
+      addToast('success', L.common.success, L.orders.cancelSuccess);
     } catch (e) {
       const msg = e instanceof ApiError ? resolveApiError(e, locale) : L.errors.orderLoadFailed;
       addToast('error', L.common.error, msg);
@@ -108,7 +108,7 @@ export default function OrderDetailScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Order Details' }} />
+        <Stack.Screen options={{ title: L.orders.orderDetails }} />
         <View className="flex-1 items-center justify-center bg-white">
           <ActivityIndicator size="large" color="#F97316" />
         </View>
@@ -119,7 +119,7 @@ export default function OrderDetailScreen() {
   if (error || !order) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Order Details' }} />
+        <Stack.Screen options={{ title: L.orders.orderDetails }} />
         <View className="flex-1 items-center justify-center bg-white px-6">
           <Text className="text-[18px] font-semibold text-[#1F2937]">
             {L.orders.detailNotFoundTitle}
@@ -142,22 +142,24 @@ export default function OrderDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Order Details' }} />
+      <Stack.Screen options={{ title: L.orders.orderDetails }} />
 
       <ScrollView
         className="flex-1 bg-[#F4F4F4]"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => load('refresh')} tintColor="#F97316" />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => load('refresh')}
+            tintColor="#F97316"
+          />
         }>
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 shadow-sm">
+        <View className="mx-4 mt-3 rounded-[28px] bg-white p-4 shadow-sm">
           <View className="flex-row items-center justify-between">
             <View>
               <Text className="text-[16px] font-bold text-[#1F2937]">#{order.code}</Text>
               <Text className="mt-1 text-[12px] text-[#6B7280]">{formatDate(order.date)}</Text>
             </View>
-            <View
-              style={{ backgroundColor: badge.bg }}
-              className="rounded-full px-3 py-1.5">
+            <View style={{ backgroundColor: badge.bg }} className="rounded-full px-3 py-1.5">
               <Text style={{ color: badge.fg }} className="text-[12px] font-semibold capitalize">
                 {order.status}
               </Text>
@@ -167,14 +169,16 @@ export default function OrderDetailScreen() {
           {order.tracking ? (
             <View className="mt-3 rounded-[18px] bg-[#FFF7F2] px-3 py-2.5">
               <Text className="text-[11px] uppercase tracking-[1.5px] text-[#F97316]">
-                Tracking number
+                {L.orders.trackingNumber}
               </Text>
-              <Text className="mt-1 text-[14px] font-semibold text-[#1F2937]">{order.tracking}</Text>
+              <Text className="mt-1 text-[14px] font-semibold text-[#1F2937]">
+                {order.tracking}
+              </Text>
             </View>
           ) : null}
         </View>
 
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 shadow-sm">
+        <View className="mx-4 mt-3 rounded-[28px] bg-white p-4 shadow-sm">
           <Text className="text-[16px] font-semibold text-[#1F2937]">Tiến trình giao hàng</Text>
           <View className="mt-3">
             {order.timeline.length === 0 ? (
@@ -196,7 +200,9 @@ export default function OrderDetailScreen() {
                       ) : null}
                     </View>
                     <View className="flex-1 pb-3">
-                      <Text className="text-[14px] font-semibold text-[#1F2937]">{event.status}</Text>
+                      <Text className="text-[14px] font-semibold text-[#1F2937]">
+                        {event.status}
+                      </Text>
                       <Text className="text-[12px] text-[#6B7280]">{formatDate(event.date)}</Text>
                     </View>
                   </View>
@@ -206,8 +212,8 @@ export default function OrderDetailScreen() {
           </View>
         </View>
 
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 shadow-sm">
-          <Text className="text-[16px] font-semibold text-[#1F2937]">Sản phẩm</Text>
+        <View className="mx-4 mt-3 rounded-[28px] bg-white p-4 shadow-sm">
+          <Text className="text-[16px] font-semibold text-[#1F2937]">{L.orders.items}</Text>
           {order.items.map((item) => (
             <View
               key={item.id}
@@ -244,28 +250,26 @@ export default function OrderDetailScreen() {
           ))}
         </View>
 
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 shadow-sm">
-          <Text className="text-[16px] font-semibold text-[#1F2937]">Địa chỉ giao hàng</Text>
+        <View className="mx-4 mt-3 rounded-[28px] bg-white p-4 shadow-sm">
+          <Text className="text-[16px] font-semibold text-[#1F2937]">
+            {L.orders.shippingAddress}
+          </Text>
           <View className="mt-3 rounded-[18px] bg-[#F9FAFB] p-3">
             <Text className="text-[14px] font-semibold text-[#1F2937]">
               {order.shippingAddress.name}
             </Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
-              {order.shippingAddress.address}
-            </Text>
+            <Text className="mt-1 text-[13px] text-[#6B7280]">{order.shippingAddress.address}</Text>
             <Text className="text-[13px] text-[#6B7280]">{order.shippingAddress.city}</Text>
-            <Text className="mt-1 text-[12px] text-[#9CA3AF]">
-              ☎ {order.shippingAddress.phone}
-            </Text>
+            <Text className="mt-1 text-[12px] text-[#9CA3AF]">☎ {order.shippingAddress.phone}</Text>
           </View>
         </View>
 
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 mb-4 shadow-sm">
+        <View className="mx-4 mb-4 mt-3 rounded-[28px] bg-white p-4 shadow-sm">
           <Text className="text-[16px] font-semibold text-[#1F2937]">Thanh toán</Text>
           <View className="mt-3 gap-2">
-            <SummaryRow label="Tạm tính" value={formatCurrency(subtotal)} />
+            <SummaryRow label={L.orders.subtotal} value={formatCurrency(subtotal)} />
             <SummaryRow
-              label="Phí vận chuyển"
+              label={L.orders.shippingFee}
               value={shippingFee === 0 ? 'Miễn phí' : formatCurrency(shippingFee)}
             />
             {order.discountTotal && order.discountTotal > 0 ? (
@@ -276,9 +280,9 @@ export default function OrderDetailScreen() {
               />
             ) : null}
             <View className="my-2 h-[1px] bg-[#F3F4F6]" />
-            <SummaryRow label="Tổng" value={formatCurrency(order.total)} bold />
+            <SummaryRow label={L.orders.total} value={formatCurrency(order.total)} bold />
             <View className="mt-2 flex-row items-center justify-between rounded-[12px] bg-[#F9FAFB] px-3 py-2">
-              <Text className="text-[12px] text-[#6B7280]">Phương thức</Text>
+              <Text className="text-[12px] text-[#6B7280]">{L.orders.paymentMethod}</Text>
               <Text className="text-[13px] font-semibold text-[#1F2937]">
                 {order.paymentMethod}
               </Text>
@@ -288,7 +292,7 @@ export default function OrderDetailScreen() {
           {canCancel ? (
             <View className="mt-4">
               <Button
-                title={cancelling ? 'Đang huỷ...' : 'Huỷ đơn'}
+                title={cancelling ? 'Đang huỷ...' : L.orders.cancelOrder}
                 onPress={handleCancel}
                 disabled={cancelling}
               />
@@ -313,7 +317,10 @@ function SummaryRow({
 }) {
   return (
     <View className="flex-row items-center justify-between">
-      <Text className={bold ? 'text-[16px] font-semibold text-[#1F2937]' : 'text-[14px] text-[#6B7280]'}>
+      <Text
+        className={
+          bold ? 'text-[16px] font-semibold text-[#1F2937]' : 'text-[14px] text-[#6B7280]'
+        }>
         {label}
       </Text>
       <Text

@@ -68,6 +68,29 @@ type Sheet = {
     detailNotFoundTitle: string;
     detailNotFoundHint: string;
     detailGoBack: string;
+    orderHistory: string;
+    myOrders: string;
+    orderCode: string;
+    orderDetails: string;
+    cancelOrder: string;
+    cancelConfirmTitle: string;
+    cancelConfirmBody: string;
+    cancelSuccess: string;
+    trackingNumber: string;
+    estimatedDelivery: string;
+    orderStatus: string;
+    items: string;
+    shippingAddress: string;
+    subtotal: string;
+    shippingFee: string;
+    total: string;
+    paymentStatus: string;
+    paymentStatusUnpaid: string;
+    paymentStatusPaid: string;
+    paymentStatusRefunded: string;
+    paymentMethod: string;
+    placedOn: string;
+    viewDetail: string;
   };
   cart: {
     addressLoginPrompt: string;
@@ -193,6 +216,29 @@ const VI: Sheet = {
     detailNotFoundTitle: 'Không tìm thấy đơn',
     detailNotFoundHint: 'Kiểm tra mã đơn và thử lại.',
     detailGoBack: 'Quay lại',
+    orderHistory: 'Lịch sử',
+    myOrders: 'Đơn hàng của tôi',
+    orderCode: 'Mã đơn hàng',
+    orderDetails: 'Chi tiết đơn hàng',
+    cancelOrder: 'Huỷ đơn hàng',
+    cancelConfirmTitle: 'Huỷ đơn hàng?',
+    cancelConfirmBody: 'Bạn có chắc chắn muốn huỷ đơn hàng này?',
+    cancelSuccess: 'Đã huỷ đơn hàng thành công',
+    trackingNumber: 'Mã vận đơn',
+    estimatedDelivery: 'Dự kiến giao hàng',
+    orderStatus: 'Trạng thái đơn hàng',
+    items: 'Sản phẩm',
+    shippingAddress: 'Địa chỉ giao hàng',
+    subtotal: 'Tạm tính',
+    shippingFee: 'Phí giao hàng',
+    total: 'Tổng cộng',
+    paymentStatus: 'Trạng thái thanh toán',
+    paymentStatusUnpaid: 'Chưa thanh toán',
+    paymentStatusPaid: 'Đã thanh toán',
+    paymentStatusRefunded: 'Đã hoàn tiền',
+    paymentMethod: 'Phương thức thanh toán',
+    placedOn: 'Đặt ngày',
+    viewDetail: 'Xem chi tiết',
   },
   cart: {
     addressLoginPrompt: 'Đăng nhập để tải địa chỉ.',
@@ -257,8 +303,10 @@ const VI: Sheet = {
 const EN: Sheet = {
   common: {
     ok: 'OK',
-    cancel: 'Cancel',    delete: 'Delete',
-    success: 'Success',    retry: 'Retry',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    success: 'Success',
+    retry: 'Retry',
     login: 'Log in',
     error: 'Error',
     loading: 'Loading…',
@@ -320,6 +368,29 @@ const EN: Sheet = {
     detailNotFoundTitle: 'Order not found',
     detailNotFoundHint: 'Check the order id and try again.',
     detailGoBack: 'Go back',
+    orderHistory: 'History',
+    myOrders: 'My Orders',
+    orderCode: 'Order Code',
+    orderDetails: 'Order Details',
+    cancelOrder: 'Cancel Order',
+    cancelConfirmTitle: 'Cancel order?',
+    cancelConfirmBody: 'Are you sure you want to cancel this order?',
+    cancelSuccess: 'Order cancelled successfully',
+    trackingNumber: 'Tracking Number',
+    estimatedDelivery: 'Estimated Delivery',
+    orderStatus: 'Order Status',
+    items: 'Items',
+    shippingAddress: 'Shipping Address',
+    subtotal: 'Subtotal',
+    shippingFee: 'Shipping Fee',
+    total: 'Total',
+    paymentStatus: 'Payment Status',
+    paymentStatusUnpaid: 'Unpaid',
+    paymentStatusPaid: 'Paid',
+    paymentStatusRefunded: 'Refunded',
+    paymentMethod: 'Payment Method',
+    placedOn: 'Placed on',
+    viewDetail: 'View detail',
   },
   cart: {
     addressLoginPrompt: 'Sign in to load your addresses.',

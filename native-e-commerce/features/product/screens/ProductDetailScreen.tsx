@@ -45,11 +45,15 @@ function findVariantBySelection(
     return sizeOk && colorOk;
   });
   if (exact) return exact;
-  return variants.find((v) => {
-    const sizeOk = size == null || (v.size ?? null) === size;
-    const colorOk = color == null || (v.color ?? null) === color;
-    return sizeOk && colorOk;
-  }) ?? variants.find((v) => v.stock > 0) ?? variants[0];
+  return (
+    variants.find((v) => {
+      const sizeOk = size == null || (v.size ?? null) === size;
+      const colorOk = color == null || (v.color ?? null) === color;
+      return sizeOk && colorOk;
+    }) ??
+    variants.find((v) => v.stock > 0) ??
+    variants[0]
+  );
 }
 
 export default function ProductDetailScreen() {
@@ -101,20 +105,13 @@ export default function ProductDetailScreen() {
     void load();
   }, [load]);
 
-  const sizes = useMemo(
-    () => (product ? uniqueValues(product.variants, 'size') : []),
-    [product]
-  );
-  const colors = useMemo(
-    () => (product ? uniqueValues(product.variants, 'color') : []),
-    [product]
-  );
+  const sizes = useMemo(() => (product ? uniqueValues(product.variants, 'size') : []), [product]);
+  const colors = useMemo(() => (product ? uniqueValues(product.variants, 'color') : []), [product]);
 
   const selectedVariant = useMemo(() => {
     if (!product) return undefined;
     return (
-      findVariantBySelection(product.variants, selectedSize, selectedColor) ??
-      product.variants[0]
+      findVariantBySelection(product.variants, selectedSize, selectedColor) ?? product.variants[0]
     );
   }, [product, selectedSize, selectedColor]);
 
@@ -154,8 +151,7 @@ export default function ProductDetailScreen() {
   }
 
   const price = selectedVariant?.price ?? product.price;
-  const heroUri =
-    galleryImages[activeImageIndex] ?? selectedVariant?.image ?? product.image;
+  const heroUri = galleryImages[activeImageIndex] ?? selectedVariant?.image ?? product.image;
   const totalStock = selectedVariant?.stock ?? product.totalStock ?? 0;
   const isOutOfStock = totalStock <= 0;
 
@@ -226,7 +222,9 @@ export default function ProductDetailScreen() {
               </View>
               {product.discount ? (
                 <View className="rounded-full bg-[#FFF1F3] px-3 py-1">
-                  <Text className="text-[12px] font-semibold text-[#F83758]">{product.discount}</Text>
+                  <Text className="text-[12px] font-semibold text-[#F83758]">
+                    {product.discount}
+                  </Text>
                 </View>
               ) : null}
             </View>
@@ -280,12 +278,13 @@ export default function ProductDetailScreen() {
                     <Pressable
                       key={sz}
                       onPress={() => {
-                        const next = product.variants.find(
-                          (v) =>
-                            v.size === sz &&
-                            (selectedColor == null || v.color === selectedColor) &&
-                            v.stock > 0
-                        ) ?? product.variants.find((v) => v.size === sz && v.stock > 0);
+                        const next =
+                          product.variants.find(
+                            (v) =>
+                              v.size === sz &&
+                              (selectedColor == null || v.color === selectedColor) &&
+                              v.stock > 0
+                          ) ?? product.variants.find((v) => v.size === sz && v.stock > 0);
                         setSelectedSize(sz);
                         if (next?.color) setSelectedColor(next.color);
                       }}
@@ -314,9 +313,15 @@ export default function ProductDetailScreen() {
               {showSizeGuide ? (
                 <View className="mt-4 rounded-[16px] bg-[#FFF7F2] p-3">
                   <View className="flex-row pb-2">
-                    <Text className="flex-1 text-[12px] font-semibold uppercase text-[#F97316]">EU</Text>
-                    <Text className="flex-1 text-[12px] font-semibold uppercase text-[#F97316]">US</Text>
-                    <Text className="flex-1 text-[12px] font-semibold uppercase text-[#F97316]">CM</Text>
+                    <Text className="flex-1 text-[12px] font-semibold uppercase text-[#F97316]">
+                      EU
+                    </Text>
+                    <Text className="flex-1 text-[12px] font-semibold uppercase text-[#F97316]">
+                      US
+                    </Text>
+                    <Text className="flex-1 text-[12px] font-semibold uppercase text-[#F97316]">
+                      CM
+                    </Text>
                   </View>
                   {SHOE_SIZE_GUIDE.map((row) => (
                     <View key={row.eu} className="flex-row py-1">
@@ -344,12 +349,13 @@ export default function ProductDetailScreen() {
                     <Pressable
                       key={c}
                       onPress={() => {
-                        const next = product.variants.find(
-                          (v) =>
-                            v.color === c &&
-                            (selectedSize == null || v.size === selectedSize) &&
-                            v.stock > 0
-                        ) ?? product.variants.find((v) => v.color === c && v.stock > 0);
+                        const next =
+                          product.variants.find(
+                            (v) =>
+                              v.color === c &&
+                              (selectedSize == null || v.size === selectedSize) &&
+                              v.stock > 0
+                          ) ?? product.variants.find((v) => v.color === c && v.stock > 0);
                         setSelectedColor(c);
                         if (next?.size) setSelectedSize(next.size);
                       }}
@@ -397,7 +403,11 @@ export default function ProductDetailScreen() {
                 }`}>
                 <Text
                   className={`text-[12px] font-semibold ${
-                    isOutOfStock ? 'text-[#B91C1C]' : totalStock <= 5 ? 'text-[#C2410C]' : 'text-[#166534]'
+                    isOutOfStock
+                      ? 'text-[#B91C1C]'
+                      : totalStock <= 5
+                        ? 'text-[#C2410C]'
+                        : 'text-[#166534]'
                   }`}>
                   {isOutOfStock
                     ? 'Hết hàng'
@@ -412,7 +422,8 @@ export default function ProductDetailScreen() {
           <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
             <View className="flex-row items-center justify-between">
               <Text className="text-[16px] font-semibold text-[#232327]">Quantity</Text>
-              <Text className={`text-[13px] font-semibold ${isOutOfStock ? 'text-[#B91C1C]' : 'text-[#16A34A]'}`}>
+              <Text
+                className={`text-[13px] font-semibold ${isOutOfStock ? 'text-[#B91C1C]' : 'text-[#16A34A]'}`}>
                 {isOutOfStock ? 'Out of stock' : `${totalStock} in stock`}
               </Text>
             </View>
@@ -471,7 +482,7 @@ export default function ProductDetailScreen() {
         <View className="flex-row gap-3">
           <View className="flex-1">
             <Button
-              title={isOutOfStock ? 'Out of stock' : 'Add to Cart'}
+              title={isOutOfStock ? 'Out of stock' : 'Thêm vào giỏ hàng'}
               onPress={handleAddToCart}
               disabled={isOutOfStock || !selectedVariant}
               variant="secondary"

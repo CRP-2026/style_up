@@ -83,7 +83,7 @@ export default function CartScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Cart',
+          title: 'Giỏ hàng',
           headerShadowVisible: false,
         }}
       />
@@ -178,7 +178,9 @@ export default function CartScreen() {
               </View>
               {appliedPromo ? (
                 <View className="mt-3 flex-row items-center justify-between rounded-[14px] bg-[#ECFDF3] px-3 py-2">
-                  <Text className="text-[12px] font-semibold text-[#166534]">Đang áp dụng: {appliedPromo}</Text>
+                  <Text className="text-[12px] font-semibold text-[#166534]">
+                    Đang áp dụng: {appliedPromo}
+                  </Text>
                   <Pressable onPress={() => setAppliedPromo(null)}>
                     <Text className="text-[12px] font-semibold text-[#166534]">Bỏ</Text>
                   </Pressable>
@@ -233,7 +235,9 @@ export default function CartScreen() {
         {pendingDelete ? (
           <View className="absolute inset-0 z-50 items-center justify-center bg-black/35 px-6">
             <View className="w-full max-w-[420px] border border-[#FFE4D6] bg-white p-5 shadow-xl">
-              <Text className="text-[19px] font-bold text-[#1F2937]">{L.cart.removeConfirmTitle}</Text>
+              <Text className="text-[19px] font-bold text-[#1F2937]">
+                {L.cart.removeConfirmTitle}
+              </Text>
               <Text className="mt-2 text-[14px] leading-[21px] text-[#6B7280]">
                 {L.cart.removeConfirmBody}
               </Text>
@@ -244,12 +248,16 @@ export default function CartScreen() {
                 <Pressable
                   onPress={() => setPendingDelete(null)}
                   className="flex-1 items-center rounded-[18px] border border-[#FED7AA]  py-3">
-                  <Text className="text-[14px] font-semibold text-[#9A3412]">{L.common.cancel}</Text>
+                  <Text className="text-[14px] font-semibold text-[#9A3412]">
+                    {L.common.cancel}
+                  </Text>
                 </Pressable>
                 <Pressable
                   onPress={confirmDeleteItem}
                   className="flex-1 items-center rounded-[18px] border border-[#FECACA] bg-[#FEF2F2] py-3">
-                  <Text className="text-[14px] font-semibold text-[#B91C1C]">{L.common.delete}</Text>
+                  <Text className="text-[14px] font-semibold text-[#B91C1C]">
+                    {L.common.delete}
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -305,7 +313,9 @@ function CartItemCard({
                     ) : null}
                   </View>
                 ) : (
-                  <Text className="mt-1 text-[12px] leading-[16px] text-[#7A7A7A]" numberOfLines={2}>
+                  <Text
+                    className="mt-1 text-[12px] leading-[16px] text-[#7A7A7A]"
+                    numberOfLines={2}>
                     {item.product.description}
                   </Text>
                 )}
