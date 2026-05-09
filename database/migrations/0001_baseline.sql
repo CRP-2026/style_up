@@ -1,5 +1,5 @@
 -- Multi-tenant e-commerce — Phase 1 (pure PostgreSQL)
--- store_id convention: 1 = phụ kiện trang sức, 2 = giày dép
+-- store_id convention: 1 = phụ kiện trang sức
 -- Run once on empty DB or via docker-entrypoint-initdb.d/
 
 -- -----------------------------------------------------------------------------
