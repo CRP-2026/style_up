@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-canvas: #f4f4f4;
+  --bg-surface: #ffffff;
+  --bg-muted: #f9fafb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-disabled: #9ca3af;
+  --brand-primary: #f97316;
+  --brand-primary-weak: #fff4ed;
+  --brand-danger: #b91c1c;
+  --brand-success: #16a34a;
+  --border-default: #e5e7eb;
+  --radius-card: 24px;
+}

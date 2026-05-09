@@ -1,0 +1,6 @@
+node_modules/
+.env
+*.log
+.sql
+metadata_shoes.json
+metadata_jewelry.json

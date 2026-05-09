@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app # Mount code để live-reload
+      - ../database:/workspace-database:ro # metadata_jewelry.json cho AI image search
+    env_file:
+      - .env
+    # Trong container, DB host là tên service `db` (khác với DATABASE_URL localhost khi chạy API trên máy host)
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-ecommerce}
+      AI_METADATA_PATH: /workspace-database/metadata_jewelry.json
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-ecommerce}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Chạy 1 lần khi volume rỗng — tạo schema từ ../database/init_database.sql
+      - ../database/init_database.sql:/docker-entrypoint-initdb.d/01-init_database.sql:ro
+      - ../database/seed_dev.sql:/docker-entrypoint-initdb.d/02-seed_dev.sql:ro
+
+volumes:
+  postgres_data:

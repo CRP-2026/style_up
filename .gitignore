@@ -1,0 +1,31 @@
+# Secrets — không commit
+**/.env
+**/.env.*
+!**/.env.example
+
+# Embedding checkpoint (AI) — không commit
+database/metadata_jewelry.json
+**/metadata_jewelry.json
+
+# Dependencies & build
+node_modules/
+.expo/
+dist/
+web-build/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs / local bundles (build artifacts)
+*.log
+npm-debug.*
+native-e-commerce/tmp_bundle*.js
+native-e-commerce/tmp_bundle_after.js
+native-e-commerce/tmp_web.html

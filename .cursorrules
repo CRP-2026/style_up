@@ -1,0 +1,53 @@
+# 1. Cross-Platform Project Context
+- This project is a cross-platform e-commerce system with 3 layers: Frontend (`/native-e-commerce`), Backend (`/native-e-commerce-be`), and Data (`/database`).
+- Frontend stack: React Native + Expo + Expo Router + TypeScript + Zustand + NativeWind, serving Android/iOS/Web from one codebase.
+- Backend stack: FastAPI + SQLAlchemy + PostgreSQL + Pydantic, exposing REST endpoints under `/api/v1`.
+- Data layer is SQL-first (schema, seed, migrations) and is the source of truth for structural data changes.
+- Architectural rule: keep clients lightweight, keep API contracts stable, and enforce clear separation of concerns across layers.
+
+# 2. Frontend Boundaries (Thư mục `/fe` - Đa nền tảng)
+- Map `/fe` to this repo's `/native-e-commerce`.
+- Use shared cross-platform code by default; add platform-specific branches only when required by runtime behavior or UX constraints.
+- For platform-specific files, prefer explicit naming (`*.web.tsx`, `*.native.tsx`, `*.ios.tsx`, `*.android.tsx`) and keep a consistent component/hook interface.
+- Never hardcode API URLs, store IDs, or secrets in UI code; only use environment variables and typed config accessors.
+- All network calls must go through the API client layer (`lib/api/*`), never directly from presentational components.
+- State management must remain modular (feature store/hook boundaries), with predictable loading/error/empty handling in every user flow.
+- UI must be responsive/adaptive across phones, tablets, and web viewports; avoid fixed pixel-only layouts and test major breakpoints.
+
+# 3. Backend Boundaries (Thư mục `/be`)
+- Map `/be` to this repo's `/native-e-commerce-be`.
+- Keep API versioned (`/api/v1`) and maintain backward compatibility unless an explicit migration/deprecation plan is defined.
+- Design payloads for mobile constraints: concise fields, server-side filtering, pagination, and minimized overfetching.
+- Standardize error responses with machine-readable fields (`code`, `message`, `details`) and avoid ad hoc error formats.
+- Follow clean layering: router handles transport/validation, service handles business logic, data access is isolated via DB session/models.
+- Respect multi-store access patterns (`X-Store-Id`) and consistent auth handling across all protected routes.
+- Any schema change requires matching migration updates and clear impact notes for FE contract consumers.
+
+# 4. Data Boundaries (Thư mục `/data`)
+- Map `/data` to this repo's `/database`.
+- Data layer owns schema evolution, migrations, seed data, data quality constraints, and heavy data processing.
+- All ETL or computationally expensive transforms must run in Data workflows, not inside request/response paths or UI clients.
+- Backend should orchestrate validated access to data, not embed large batch processing logic in API handlers.
+- Frontend must consume already-processed domain data and should not perform heavy normalization that belongs to Data/Backend.
+
+# 5. Team Collaboration & Cross-Layer Integration
+- Naming convention policy:
+  - DB and SQL objects: `snake_case`.
+  - FE domain models and UI-facing objects: `camelCase`.
+  - Mapping between naming styles must occur in explicit API adapter/serialization boundaries.
+- Every shared contract change (field/type/nullability/enum) must be updated in BE schemas + FE types in the same delivery scope.
+- PRs touching API or schema must include:
+  - impacted layers (`fe`, `be`, `data`),
+  - migration requirements,
+  - contract compatibility notes,
+  - smoke-test path for validation.
+- Cross-layer review is mandatory when changes affect interfaces consumed by another team.
+
+# 6. AI Behavior Guidelines
+- Always reason in this order for fullstack work: Data -> Backend -> Frontend (Mobile/Web).
+- When generating UI code, always account for cross-device behavior (small mobile, large mobile, tablet, web).
+- Keep generated code modular, with short focused functions and explicit boundaries; avoid monolithic files.
+- Do not introduce new libraries without evaluating cross-platform compatibility, maintenance burden, and runtime impact.
+- Prefer fixing issues at the owning layer rather than patching symptoms in downstream layers.
+- Keep API and error handling patterns consistent; avoid silent failures and vague fallback behavior.
+- When contracts change, update related types/tests/smoke checks so all layers remain aligned.
