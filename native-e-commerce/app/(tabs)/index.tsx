@@ -62,17 +62,10 @@ export default function HomeScreen() {
         : Array.isArray(prods?.items)
           ? prods.items
           : [];
-      const mockImages: Record<string, string> = {
-        accessories: 'https://images.unsplash.com/photo-1576053139778-7e32f2ae3cfd?w=400&q=80',
-        rings: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=80',
-        earrings: 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=400&q=80',
-        necklaces: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=80',
-        bracelets: 'https://images.unsplash.com/photo-1611591437281-460bfbe157ad?w=400&q=80',
-      };
       setHomeCategories(
         cats.map((c) => ({
           ...c,
-          image: c.image && c.image.length > 0 ? c.image : (mockImages[c.id] || 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=80'),
+          image: c.image && c.image.length > 0 ? c.image : 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=80',
         }))
       );
       setHomeProducts(products);
