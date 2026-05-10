@@ -21,6 +21,10 @@ def login(
     token = auth_svc.issue_token(user.id, store_id)
     return Token(access_token=token)
 
+@router.post("/google-login")
+async def google_login(token_data: dict, db: Session = Depends(get_db)):
+    pass
+
 
 @router.post("/register", response_model=Token)
 def register(

@@ -55,9 +55,19 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.jewelrystore.styleup",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3591cd1d-5331-4c0d-9a38-6bd98396b084"
       }
     }
   }
