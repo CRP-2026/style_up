@@ -29,3 +29,20 @@ class OrderStatusUpdateIn(BaseModel):
     tracking_number: str | None = Field(default=None, alias="trackingNumber", max_length=120)
 
     model_config = {"populate_by_name": True}
+
+
+class OrderCancelIn(BaseModel):
+    """Body tùy chọn cho khách huỷ đơn (không cần gửi ``status`` — server luôn huỷ)."""
+
+    note: str | None = Field(default=None, max_length=200)
+
+    model_config = {"populate_by_name": True}
+
+
+class CreatePaymentUrlIn(BaseModel):
+    """Tạo URL thanh toán VNPay Sandbox — số tiền luôn lấy từ đơn hàng trên server."""
+
+    order_id: str = Field(alias="orderId")
+    return_url: str = Field(alias="returnUrl")
+
+    model_config = {"populate_by_name": True}

@@ -10,6 +10,7 @@ import { useCart } from '~/features/cart/hooks/useCart';
 import { getAddresses } from '~/features/account/services/addressStorage';
 import { getAccessToken } from '~/lib/api/token';
 import { placeOrder } from '~/lib/api/orders';
+
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
 import type { Address } from '~/lib/types/models';
 import { variantIdForOrderApi } from '~/lib/utils/variant';
@@ -30,8 +31,8 @@ const paymentMethods = [
   },
   {
     id: 'wallet',
-    title: 'E-wallet',
-    subtitle: 'Momo, ZaloPay, VNPay',
+    title: 'VietQR / Bank Transfer',
+    subtitle: 'Scan bằng ứng dụng ngân hàng',
     icon: 'wallet-outline' as const,
   },
 ];
@@ -49,7 +50,7 @@ export default function CheckoutScreen() {
   const [shippingAddresses, setShippingAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
-    paymentMethods[0]?.id ?? ''
+    paymentMethods[2]?.id ?? paymentMethods[0]?.id ?? ''
   );
   const [placing, setPlacing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -144,8 +145,8 @@ export default function CheckoutScreen() {
       });
       clearCart();
       addToast('success', L.checkout.successTitle, L.checkout.successMessage);
-      router.replace({
-        pathname: '/checkout-success',
+      router.push({
+        pathname: '/payment-qr' as any,
         params: {
           orderId: created.id,
           promoCode: promoCode ?? undefined,

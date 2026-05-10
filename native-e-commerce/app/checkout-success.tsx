@@ -4,22 +4,27 @@ import { View, Text, Pressable, ScrollView } from 'react-native';
 
 export default function CheckoutSuccess() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ orderId?: string; promoCode?: string }>();
+  const params = useLocalSearchParams<{
+    orderId?: string;
+    promoCode?: string;
+    paymentStatus?: string;
+  }>();
   const orderId = params.orderId ?? '';
   const promoCode = params.promoCode ?? '';
+  const paymentStatus = params.paymentStatus ?? 'paid';
   const checkoutCopy = {
-    successTitle: 'Order Placed!',
-    successMessage: 'Your order was placed successfully.',
+    successTitle: 'Thanh toán thành công',
+    successMessage: 'Đơn hàng đã được ghi nhận và đang chờ xử lý.',
     orderId: 'Order ID',
     nextSteps: 'What happens next?',
-    step1Title: 'Order confirmed',
-    step1Desc: 'We are preparing your order.',
-    step2Title: 'Shipped',
-    step2Desc: 'We will notify you when it ships.',
-    step3Title: 'Delivered',
-    step3Desc: 'Track your order at any time.',
-    viewOrder: 'View Order Details',
-    continueShopping: 'Continue Shopping',
+    step1Title: 'Payment recorded',
+    step1Desc: 'Your order is now marked as paid.',
+    step2Title: 'Processing',
+    step2Desc: 'The store is preparing your items.',
+    step3Title: 'Delivery updates',
+    step3Desc: 'Track progress from the order detail screen.',
+    viewOrder: 'Xem chi tiết đơn hàng',
+    continueShopping: 'Tiếp tục mua sắm',
   };
 
   return (
@@ -44,6 +49,9 @@ export default function CheckoutSuccess() {
             </Text>
             <Text className="mt-3 text-center text-[16px] leading-[24px] text-[#6B7280]">
               {checkoutCopy.successMessage}
+            </Text>
+            <Text className="mt-2 text-center text-[12px] uppercase tracking-[1.5px] text-[#16A34A]">
+              Payment status: {paymentStatus}
             </Text>
 
             {/* Order Details Card */}
@@ -118,9 +126,7 @@ export default function CheckoutSuccess() {
               <Pressable
                 className="items-center rounded-[24px] bg-[#F97316] px-6 py-4"
                 onPress={() => router.push(`/order/${encodeURIComponent(orderId)}`)}>
-                <Text className="font-semibold text-white">
-                  {checkoutCopy.viewOrder}
-                </Text>
+                <Text className="font-semibold text-white">{checkoutCopy.viewOrder}</Text>
               </Pressable>
               <Pressable
                 className="items-center rounded-[24px] border border-[#E5E7EB] bg-white px-6 py-4"

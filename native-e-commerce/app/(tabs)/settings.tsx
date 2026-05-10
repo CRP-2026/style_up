@@ -25,9 +25,11 @@ const AUTH_ROUTES: TestRouteItem[] = [
 
 const FLOW_ROUTES: TestRouteItem[] = [
   { label: 'Checkout', path: '/checkout' },
+  { label: 'Payment QR', path: '/payment-qr' },
   { label: 'Address', path: '/address' },
   { label: 'Onboarding', path: '/onboarding' },
   { label: 'Modal', path: '/modal' },
+  { label: 'Payment Success', path: '/payment-success' },
   { label: 'Checkout Success', path: '/checkout-success' },
   { label: 'Checkout Failure', path: '/checkout-failure' },
 ];

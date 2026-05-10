@@ -408,6 +408,131 @@ def create_order(db: Session, store_id: int, user_id: str, payload: OrderCreateI
     assert detail is not None
     return detail
 
+def _finalize_paid_wallet_order(
+    db: Session,
+    store_id: int,
+    order: Order,
+    *,
+    vnp_response_code: str = "00",
+) -> dict:
+    """Chuyển đơn wallet sang paid + pending→processing + timeline (idempotent nếu đã paid)."""
+    now = datetime.now(timezone.utc)
+    order_id = order.id
+    if str(order.payment_status) == "paid":
+        db.rollback()
+        detail = get_order_detail(db, store_id, None, order_id)
+        assert detail is not None
+        return {
+            "status": "success",
+            "message": "Thanh toán thành công",
+            "orderId": order_id,
+            "vnpResponseCode": vnp_response_code,
+            "paymentStatus": "paid",
+            "orderCode": detail["code"],
+        }
+
+    order.payment_status = "paid"
+    new_timeline_status = str(order.status)
+    if new_timeline_status == "pending":
+        order.status = "processing"
+        new_timeline_status = "processing"
+
+    next_pos = db.execute(
+        select(func.coalesce(func.max(OrderTimeline.position), -1) + 1).where(
+            OrderTimeline.order_id == order.id
+        )
+    ).scalar_one()
+    timeline = OrderTimeline(
+        id=str(uuid.uuid4()),
+        store_id=store_id,
+        order_id=order.id,
+        status_label=STATUS_LABELS.get(new_timeline_status, new_timeline_status),
+        status_code=new_timeline_status,
+        happened_at=now,
+        completed=True,
+        position=int(next_pos or 0),
+    )
+    db.add(timeline)
+    db.commit()
+
+    detail = get_order_detail(db, store_id, None, order_id)
+    assert detail is not None
+    return {
+        "status": "success",
+        "message": "Thanh toán thành công",
+        "orderId": order_id,
+        "vnpResponseCode": vnp_response_code,
+        "paymentStatus": str(order.payment_status),
+        "orderCode": detail["code"],
+    }
+
+
+def mark_order_paid_mock(db: Session, store_id: int, user_id: str, order_id: str) -> dict:
+    """Ghi nhận thanh toán mô phỏng cho flow VietQR.
+
+    - Idempotent: nếu đơn đã paid thì trả lại detail hiện tại.
+    - Nếu đơn vẫn pending, đưa sang processing để phản ánh trạng thái hậu thanh toán.
+    """
+    order = db.execute(
+        select(Order).where(
+            Order.id == order_id,
+            Order.store_id == store_id,
+            Order.user_id == user_id,
+        ).with_for_update()
+    ).scalar_one_or_none()
+    if order is None:
+        raise AppError("not_found", "Order not found", status_code=404)
+    if str(order.status) == "cancelled":
+        db.rollback()
+        raise AppError("bad_request", "Order was cancelled", status_code=409)
+
+    now = datetime.now(timezone.utc)
+    if str(order.payment_status) != "paid":
+        order.payment_status = "paid"
+        if str(order.status) == "pending":
+            order.status = "processing"
+
+            next_pos = db.execute(
+                select(func.coalesce(func.max(OrderTimeline.position), -1) + 1).where(
+                    OrderTimeline.order_id == order.id
+                )
+            ).scalar_one()
+            db.add(
+                OrderTimeline(
+                    id=str(uuid.uuid4()),
+                    store_id=store_id,
+                    order_id=order.id,
+                    status_label=STATUS_LABELS["processing"],
+                    status_code="processing",
+                    happened_at=now,
+                    completed=True,
+                    position=int(next_pos or 0),
+                )
+            )
+
+        db.commit()
+
+    detail = get_order_detail(db, store_id, user_id, order_id)
+    assert detail is not None
+    return {
+        "status": "success",
+        "message": "Thanh toán đã được ghi nhận",
+        "orderId": order.id,
+        "orderCode": detail["code"],
+        "statusCode": str(order.status),
+        "paymentStatus": str(order.payment_status),
+    }
+
+
+def mock_vnpay_success_demo(db: Session, store_id: int, user_id: str, order_id: str) -> dict:
+    """Đồ án / demo: ghi nhận paid không xác thực callback VNPAY (chỉ gọi khi API bật VNPAY_ALLOW_MOCK)."""
+    out = mark_order_paid_mock(db, store_id, user_id, order_id)
+    out["demo"] = True
+    out["message"] = "Demo: đã ghi nhận thanh toán (không xác thực VNPAY)"
+    return out
+
+
+
 
 def update_order_status(
     db: Session,
