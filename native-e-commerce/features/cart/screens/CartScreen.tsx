@@ -92,7 +92,7 @@ export default function CartScreen() {
         <View className="absolute left-[-90px] top-[-100px] h-[240px] w-[240px] rounded-full bg-[#FFE6D8]" />
         <View className="absolute right-[-120px] top-[120px] h-[280px] w-[280px] rounded-full bg-[#FFECE2]" />
 
-        <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+        <ScrollView showsVerticalScrollIndicator={false} className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
           <View className="px-5 pb-6 pt-2">
             <View className="flex-row items-center justify-between">
               <View>

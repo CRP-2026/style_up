@@ -17,13 +17,13 @@ INSERT INTO payment_methods (store_id, code, title, subtitle, icon, enabled, pos
   (1, 'wallet', 'E-wallet', 'Momo, ZaloPay, VNPay', 'wallet-outline', TRUE, 2)
 ON CONFLICT (store_id, code) DO NOTHING;
 
-INSERT INTO categories (store_id, id, label, slug) VALUES
-  (1, 'accessories', 'Accessories', 'accessories'),
-  (1, 'rings', 'Rings', 'rings'),
-  (1, 'earrings', 'Earrings', 'earrings'),
-  (1, 'necklaces', 'Necklaces', 'necklaces'),
-  (1, 'bracelets', 'Bracelets', 'bracelets')
-ON CONFLICT (store_id, id) DO NOTHING;
+INSERT INTO categories (store_id, id, label, slug, image) VALUES
+  (1, 'accessories', 'Accessories', 'accessories', 'https://images.unsplash.com/photo-1576053139778-7e32f2ae3cfd?w=400&q=80'),
+  (1, 'rings', 'Rings', 'rings', 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&q=80'),
+  (1, 'earrings', 'Earrings', 'earrings', 'https://inayas.in/wp-content/uploads/2025/05/IMG_20250416_124252036_HDR.jpg?x52606'),
+  (1, 'necklaces', 'Necklaces', 'necklaces', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=80'),
+  (1, 'bracelets', 'Bracelets', 'bracelets', 'https://images.unsplash.com/photo-1515562141207-7a18b5ce7142?w=400&q=80')
+ON CONFLICT (store_id, id) DO UPDATE SET image = EXCLUDED.image;
 
 -- bcrypt hash của "demo123456" (tạo bằng bcrypt.gensalt)
 INSERT INTO users (id, store_id, email, password_hash, name, phone, role, is_active)

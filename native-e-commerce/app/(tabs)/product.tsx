@@ -181,8 +181,8 @@ export default function ProductCatalogScreen() {
     <>
       <Stack.Screen options={{ title: 'Sản phẩm', headerShown: false }} />
 
-      <ScrollView className="flex-1 bg-[#F4F4F4]" showsVerticalScrollIndicator={false}>
-        <View className="mt-4 px-4 pb-10 pt-4">
+      <ScrollView className="flex-1 bg-[#F4F4F4]" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        <View className="mt-4 px-4 pt-4">
           <HomeHeader
             searchValue={searchInput}
             onSearchChange={setSearchInput}

@@ -5,6 +5,8 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6)
 
+class GoogleLoginRequest(BaseModel):
+    id_token: str
 
 class SignupRequest(BaseModel):
     email: EmailStr

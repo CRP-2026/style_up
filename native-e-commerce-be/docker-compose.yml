@@ -4,7 +4,7 @@ services:
   api:
     build: .
     ports:
-      - "8000:8000"
+      - "8005:8000"
     volumes:
       - .:/app # Mount code để live-reload
       - ../database:/workspace-database:ro # metadata_jewelry.json cho AI image search
