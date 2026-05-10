@@ -23,7 +23,7 @@ export async function fetchOrderDetail(orderId: string): Promise<OrderDetail> {
 }
 
 export async function placeOrder(payload: PlaceOrderPayload): Promise<OrderDetail> {
-  return apiPost<OrderDetail>('orders/', {
+  return apiPost<OrderDetail>('orders/create', {
     items: payload.items.map((i) => ({
       productId: i.productId,
       variantId: i.variantId,
