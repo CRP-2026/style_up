@@ -154,3 +154,48 @@ INSERT INTO product_images (id, store_id, product_id, url, position) VALUES
   ('img-jwl-set-0', 1, 'jewelry-set-01', 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=60', 0),
   ('img-jwl-set-1', 1, 'jewelry-set-01', 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=900&q=60', 1)
 ON CONFLICT (id) DO NOTHING;
+
+-- --- Additional 16 Products (Total 19) ---
+INSERT INTO products (
+  store_id, id, category_id, name, slug, description, short_description, default_image,
+  base_price, rating_avg, review_count, jewelry_type, finish, occasion, is_active, total_stock
+) VALUES
+(1, 'prod-001', 'rings', 'Diamond Solitaire Ring', 'diamond-solitaire-ring', 'A classic diamond solitaire ring in 18K white gold.', 'A classic diamond solitaire ring.', 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=900&q=80', 8990000, 4.9, 120, 'ring', 'polished', 'daily', TRUE, 15),
+(1, 'prod-002', 'rings', 'Vintage Emerald Ring', 'vintage-emerald-ring', 'Vintage style emerald ring with diamond accents.', 'Vintage style emerald ring.', 'https://images.unsplash.com/photo-1614179924047-79a1b0845c9f?w=900&q=80', 5500000, 4.7, 85, 'ring', 'polished', 'daily', TRUE, 8),
+(1, 'prod-003', 'rings', 'Sapphire Halo Ring', 'sapphire-halo-ring', 'Stunning sapphire halo ring perfect for engagements.', 'Stunning sapphire halo ring.', 'https://images.unsplash.com/photo-1596945037924-f72cb9a6d97f?w=900&q=80', 7200000, 4.8, 200, 'ring', 'polished', 'daily', TRUE, 12),
+(1, 'prod-004', 'rings', 'Rose Gold Promise Ring', 'rose-gold-promise-ring', 'Delicate rose gold promise ring.', 'Delicate rose gold promise ring.', 'https://images.unsplash.com/photo-1515562141207-7a18b5ce7142?w=900&q=80', 2500000, 4.5, 45, 'ring', 'polished', 'daily', TRUE, 20),
+
+(1, 'prod-005', 'earrings', 'Pearl Drop Earrings', 'pearl-drop-earrings', 'Elegant freshwater pearl drop earrings.', 'Elegant freshwater pearl drop earrings.', 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=900&q=80', 1200000, 4.6, 60, 'earring', 'polished', 'daily', TRUE, 30),
+(1, 'prod-006', 'earrings', 'Gold Hoop Earrings', 'gold-hoop-earrings', 'Classic 14K gold hoop earrings.', 'Classic 14K gold hoop earrings.', 'https://images.unsplash.com/photo-1617038220319-7f80d8f9b4c5?w=900&q=80', 1800000, 4.8, 150, 'earring', 'polished', 'daily', TRUE, 25),
+(1, 'prod-007', 'earrings', 'Diamond Studs', 'diamond-studs', 'Brilliant cut diamond stud earrings.', 'Brilliant cut diamond stud earrings.', 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=900&q=80', 4500000, 4.9, 300, 'earring', 'polished', 'daily', TRUE, 10),
+(1, 'prod-008', 'earrings', 'Silver Chandelier Earrings', 'silver-chandelier-earrings', 'Intricate silver chandelier earrings for special occasions.', 'Intricate silver chandelier earrings.', 'https://images.unsplash.com/photo-1588444650733-d0767b753cb8?w=900&q=80', 950000, 4.4, 35, 'earring', 'polished', 'daily', TRUE, 15),
+
+(1, 'prod-009', 'necklaces', 'Diamond Tennis Necklace', 'diamond-tennis-necklace', 'Luxurious diamond tennis necklace.', 'Luxurious diamond tennis necklace.', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80', 15000000, 5.0, 10, 'necklace', 'polished', 'daily', TRUE, 5),
+(1, 'prod-010', 'necklaces', 'Gold Chain Necklace', 'gold-chain-necklace', 'Simple and elegant 18K gold chain.', 'Simple and elegant 18K gold chain.', 'https://images.unsplash.com/photo-1611591437281-460bfbe157ad?w=900&q=80', 3200000, 4.7, 90, 'necklace', 'polished', 'daily', TRUE, 40),
+(1, 'prod-011', 'necklaces', 'Silver Heart Pendant', 'silver-heart-pendant', 'Sterling silver necklace with a heart pendant.', 'Sterling silver necklace with heart.', 'https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?w=900&q=80', 850000, 4.5, 110, 'necklace', 'polished', 'daily', TRUE, 50),
+(1, 'prod-012', 'necklaces', 'Pearl Strand Necklace', 'pearl-strand-necklace', 'Classic Akoya pearl strand necklace.', 'Classic Akoya pearl strand necklace.', 'https://images.unsplash.com/photo-1515562141207-7a18b5ce7142?w=900&q=80', 5800000, 4.8, 75, 'necklace', 'polished', 'daily', TRUE, 12),
+
+(1, 'prod-013', 'bracelets', 'Silver Charm Bracelet', 'silver-charm-bracelet', 'Customizable silver charm bracelet.', 'Customizable silver charm bracelet.', 'https://images.unsplash.com/photo-1611591437281-460bfbe157ad?w=900&q=80', 1100000, 4.6, 200, 'bracelet', 'polished', 'daily', TRUE, 30),
+(1, 'prod-014', 'bracelets', 'Gold Bangle', 'gold-bangle', 'Sleek 14K gold bangle bracelet.', 'Sleek 14K gold bangle bracelet.', 'https://images.unsplash.com/photo-1576053139778-7e32f2ae3cfd?w=900&q=80', 2800000, 4.7, 130, 'bracelet', 'polished', 'daily', TRUE, 22),
+(1, 'prod-015', 'bracelets', 'Diamond Tennis Bracelet', 'diamond-tennis-bracelet', 'Stunning diamond tennis bracelet.', 'Stunning diamond tennis bracelet.', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80', 9500000, 4.9, 40, 'bracelet', 'polished', 'daily', TRUE, 7),
+(1, 'prod-016', 'bracelets', 'Leather Wrap Bracelet', 'leather-wrap-bracelet', 'Casual leather wrap bracelet with silver accents.', 'Casual leather wrap bracelet.', 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=900&q=80', 450000, 4.3, 80, 'bracelet', 'polished', 'daily', TRUE, 60)
+ON CONFLICT (store_id, id) DO NOTHING;
+
+INSERT INTO product_variants (store_id, id, product_id, sku, color, price, stock, image, position) VALUES
+(1, 'prod-001-def', 'prod-001', 'SKU-001', NULL, 8990000, 15, 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=900&q=80', 0),
+(1, 'prod-002-def', 'prod-002', 'SKU-002', NULL, 5500000, 8, 'https://images.unsplash.com/photo-1614179924047-79a1b0845c9f?w=900&q=80', 0),
+(1, 'prod-003-def', 'prod-003', 'SKU-003', NULL, 7200000, 12, 'https://images.unsplash.com/photo-1596945037924-f72cb9a6d97f?w=900&q=80', 0),
+(1, 'prod-004-def', 'prod-004', 'SKU-004', NULL, 2500000, 20, 'https://images.unsplash.com/photo-1515562141207-7a18b5ce7142?w=900&q=80', 0),
+(1, 'prod-005-def', 'prod-005', 'SKU-005', NULL, 1200000, 30, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=900&q=80', 0),
+(1, 'prod-006-def', 'prod-006', 'SKU-006', NULL, 1800000, 25, 'https://images.unsplash.com/photo-1617038220319-7f80d8f9b4c5?w=900&q=80', 0),
+(1, 'prod-007-def', 'prod-007', 'SKU-007', NULL, 4500000, 10, 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=900&q=80', 0),
+(1, 'prod-008-def', 'prod-008', 'SKU-008', NULL, 950000, 15, 'https://images.unsplash.com/photo-1588444650733-d0767b753cb8?w=900&q=80', 0),
+(1, 'prod-009-def', 'prod-009', 'SKU-009', NULL, 15000000, 5, 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80', 0),
+(1, 'prod-010-def', 'prod-010', 'SKU-010', NULL, 3200000, 40, 'https://images.unsplash.com/photo-1611591437281-460bfbe157ad?w=900&q=80', 0),
+(1, 'prod-011-def', 'prod-011', 'SKU-011', NULL, 850000, 50, 'https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?w=900&q=80', 0),
+(1, 'prod-012-def', 'prod-012', 'SKU-012', NULL, 5800000, 12, 'https://images.unsplash.com/photo-1515562141207-7a18b5ce7142?w=900&q=80', 0),
+(1, 'prod-013-def', 'prod-013', 'SKU-013', NULL, 1100000, 30, 'https://images.unsplash.com/photo-1611591437281-460bfbe157ad?w=900&q=80', 0),
+(1, 'prod-014-def', 'prod-014', 'SKU-014', NULL, 2800000, 22, 'https://images.unsplash.com/photo-1576053139778-7e32f2ae3cfd?w=900&q=80', 0),
+(1, 'prod-015-def', 'prod-015', 'SKU-015', NULL, 9500000, 7, 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80', 0),
+(1, 'prod-016-def', 'prod-016', 'SKU-016', NULL, 450000, 60, 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=900&q=80', 0)
+ON CONFLICT (store_id, id) DO NOTHING;

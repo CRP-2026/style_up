@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Feather } from '@expo/vector-icons';
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { useToast } from '~/components/ToastProvider';
 import { fetchCurrentUser } from '~/lib/api/users';
@@ -9,6 +10,57 @@ import { ApiError } from '~/lib/api/errors';
 import { getAccessToken } from '~/lib/api/token';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
 import type { CurrentUser } from '~/lib/types/user';
+
+const MENU_ITEMS = [
+  {
+    icon: 'stats-chart-outline' as const,
+    title: 'Dashboard báo cáo',
+    subtitle: 'Doanh thu, top sản phẩm, tồn kho thấp',
+    path: '/admin/dashboard',
+    color: '#6366F1',
+    bg: '#EEF2FF',
+  },
+  {
+    icon: 'cart-outline' as const,
+    title: 'Quản lý đơn hàng',
+    subtitle: 'Cập nhật trạng thái đơn, tracking',
+    path: '/admin/orders',
+    color: '#F97316',
+    bg: '#FFF7ED',
+  },
+  {
+    icon: 'cube-outline' as const,
+    title: 'Tồn kho',
+    subtitle: 'Cập nhật số lượng từng size/màu',
+    path: '/admin/inventory',
+    color: '#10B981',
+    bg: '#ECFDF5',
+  },
+  {
+    icon: 'albums-outline' as const,
+    title: 'Danh mục',
+    subtitle: 'CRUD category và ảnh danh mục',
+    path: '/admin/categories',
+    color: '#8B5CF6',
+    bg: '#F5F3FF',
+  },
+  {
+    icon: 'pricetags-outline' as const,
+    title: 'Khuyến mãi',
+    subtitle: 'Tạo và quản lý promo code',
+    path: '/admin/promos',
+    color: '#F83758',
+    bg: '#FFF0F3',
+  },
+  {
+    icon: 'people-outline' as const,
+    title: 'Người dùng',
+    subtitle: 'Khoá tài khoản, đổi role staff/admin',
+    path: '/admin/users',
+    color: '#0EA5E9',
+    bg: '#F0F9FF',
+  },
+];
 
 export default function AdminHomeScreen() {
   const router = useRouter();
@@ -56,9 +108,10 @@ export default function AdminHomeScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Admin' }} />
-        <View className="flex-1 items-center justify-center bg-white">
-          <ActivityIndicator size="large" color="#F97316" />
+        <Stack.Screen options={{ headerShown: false }} />
+        <View className="flex-1 items-center justify-center bg-[#0F0F13]">
+          <ActivityIndicator size="large" color="#F83758" />
+          <Text className="mt-4 text-[14px] text-white/50">Đang xác thực...</Text>
         </View>
       </>
     );
@@ -67,15 +120,23 @@ export default function AdminHomeScreen() {
   if (forbidden) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Admin' }} />
-        <View className="flex-1 items-center justify-center bg-white px-6">
-          <Ionicons name="lock-closed-outline" size={36} color="#9CA3AF" />
-          <Text className="mt-3 text-[16px] font-semibold text-[#1F2937]">
-            Tài khoản không có quyền admin
+        <Stack.Screen options={{ headerShown: false }} />
+        <View className="flex-1 items-center justify-center bg-[#0F0F13] px-8">
+          <View className="h-20 w-20 items-center justify-center rounded-full bg-white/10">
+            <Ionicons name="lock-closed-outline" size={36} color="#F83758" />
+          </View>
+          <Text className="mt-5 text-center text-[20px] font-bold text-white">
+            Không có quyền truy cập
           </Text>
-          <Pressable onPress={() => router.back()} className="mt-4 rounded-full bg-[#F97316] px-5 py-2.5">
-            <Text className="text-[13px] font-semibold text-white">Quay lại</Text>
-          </Pressable>
+          <Text className="mt-2 text-center text-[14px] text-white/50">
+            Tài khoản của bạn không phải admin hoặc staff.
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            activeOpacity={0.85}
+            className="mt-8 h-[50px] items-center justify-center rounded-[14px] bg-[#F83758] px-10">
+            <Text className="text-[15px] font-bold text-white">Quay lại</Text>
+          </TouchableOpacity>
         </View>
       </>
     );
@@ -83,78 +144,103 @@ export default function AdminHomeScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Admin' }} />
-      <ScrollView className="flex-1 bg-[#F4F4F4]">
-        <View className="m-4 rounded-[24px] bg-white p-4 shadow-sm">
-          <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">Đăng nhập</Text>
-          <Text className="mt-1 text-[18px] font-bold text-[#1F2937]">{user?.name}</Text>
-          <Text className="text-[12px] text-[#6B7280]">{user?.email}</Text>
+      <Stack.Screen options={{ headerShown: false }} />
+      <ScrollView
+        className="flex-1 bg-[#F4F4F8]"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}>
+
+        {/* Header */}
+        <View
+          className="px-6 pb-8 pt-14"
+          style={{ backgroundColor: '#0F0F13', borderBottomLeftRadius: 32, borderBottomRightRadius: 32 }}>
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-2xl bg-[#F83758]">
+                <Feather name="shopping-bag" size={18} color="white" />
+              </View>
+              <View>
+                <Text className="text-[18px] font-bold text-white">Style Up</Text>
+                <Text className="text-[10px] tracking-widest text-[#F83758] uppercase font-bold">Admin Panel</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => router.replace('/(tabs)')}
+              activeOpacity={0.7}
+              className="h-9 w-9 items-center justify-center rounded-full bg-white/10">
+              <Feather name="x" size={16} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          {/* User info card */}
+          <View className="mt-6 flex-row items-center gap-4 rounded-[20px] bg-white/10 p-4">
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-[#F83758]">
+              <Text className="text-[20px] font-bold text-white">
+                {(user?.name ?? 'A').charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-[17px] font-bold text-white">{user?.name ?? '---'}</Text>
+              <Text className="text-[12px] text-white/60">{user?.email ?? '---'}</Text>
+            </View>
+            <View className="rounded-full bg-[#F83758]/20 px-3 py-1">
+              <Text className="text-[11px] font-bold uppercase tracking-wider text-[#F83758]">
+                {user?.role ?? 'admin'}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        <AdminTile
-          icon="stats-chart-outline"
-          title="Dashboard báo cáo"
-          subtitle="Doanh thu, top sản phẩm, tồn kho thấp"
-          onPress={() => router.push('/admin/dashboard' as never)}
-        />
-        <AdminTile
-          icon="cart-outline"
-          title="Quản lý đơn hàng"
-          subtitle="Cập nhật trạng thái đơn, tracking"
-          onPress={() => router.push('/admin/orders' as never)}
-        />
-        <AdminTile
-          icon="cube-outline"
-          title="Tồn kho theo size"
-          subtitle="Cập nhật số lượng từng size/màu"
-          onPress={() => router.push('/admin/inventory' as never)}
-        />
-        <AdminTile
-          icon="albums-outline"
-          title="Danh mục"
-          subtitle="CRUD category và ảnh danh mục"
-          onPress={() => router.push('/admin/categories' as never)}
-        />
-        <AdminTile
-          icon="pricetags-outline"
-          title="Khuyến mãi"
-          subtitle="Tạo và quản lý promo code"
-          onPress={() => router.push('/admin/promos' as never)}
-        />
-        <AdminTile
-          icon="people-outline"
-          title="Người dùng"
-          subtitle="Khoá tài khoản, đổi role staff/admin"
-          onPress={() => router.push('/admin/users' as never)}
-        />
+        {/* Quick stats row */}
+        <View className="mt-5 flex-row gap-3 px-5">
+          {[
+            { label: 'Đơn hôm nay', value: '24', icon: 'shopping-bag' as const, color: '#F97316' },
+            { label: 'Sản phẩm', value: '19', icon: 'box' as const, color: '#6366F1' },
+            { label: 'Người dùng', value: '312', icon: 'users' as const, color: '#10B981' },
+          ].map((stat) => (
+            <View
+              key={stat.label}
+              className="flex-1 items-center rounded-[16px] bg-white py-4 shadow-sm">
+              <Feather name={stat.icon} size={20} color={stat.color} />
+              <Text className="mt-1 text-[20px] font-bold text-[#1F1F1F]">{stat.value}</Text>
+              <Text className="text-[11px] text-[#9CA3AF]">{stat.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Menu grid */}
+        <View className="mt-5 px-5">
+          <Text className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-[#9CA3AF]">
+            Chức năng quản lý
+          </Text>
+          <View className="gap-3">
+            {MENU_ITEMS.map((item) => (
+              <TouchableOpacity
+                key={item.path}
+                onPress={() => router.push(item.path as never)}
+                activeOpacity={0.85}
+                className="flex-row items-center gap-4 rounded-[18px] bg-white p-4"
+                style={{ shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
+                <View
+                  className="h-12 w-12 items-center justify-center rounded-[14px]"
+                  style={{ backgroundColor: item.bg }}>
+                  <Ionicons name={item.icon} size={22} color={item.color} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-[15px] font-semibold text-[#1F1F1F]">{item.title}</Text>
+                  <Text className="text-[12px] text-[#9CA3AF]">{item.subtitle}</Text>
+                </View>
+                <View
+                  className="h-8 w-8 items-center justify-center rounded-full"
+                  style={{ backgroundColor: item.bg }}>
+                  <Ionicons name="chevron-forward" size={14} color={item.color} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
       </ScrollView>
     </>
-  );
-}
-
-function AdminTile({
-  icon,
-  title,
-  subtitle,
-  onPress,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="mx-4 mb-3 flex-row items-center gap-3 rounded-[20px] bg-white p-4 shadow-sm">
-      <View className="h-12 w-12 items-center justify-center rounded-full bg-[#FFF4ED]">
-        <Ionicons name={icon} size={22} color="#F97316" />
-      </View>
-      <View className="flex-1">
-        <Text className="text-[15px] font-semibold text-[#1F2937]">{title}</Text>
-        <Text className="text-[12px] text-[#6B7280]">{subtitle}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-    </Pressable>
   );
 }

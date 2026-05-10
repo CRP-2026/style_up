@@ -1,6 +1,8 @@
-import React from 'react';
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useUserStore } from '~/lib/store/userStore';
 
 type Props = {
   searchValue?: string;
@@ -11,6 +13,8 @@ type Props = {
 
 export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch, onPressCamera }: Props) {
   const [isFocused, setIsFocused] = React.useState(false);
+  const router = useRouter();
+  const user = useUserStore();
 
   return (
     <>
@@ -25,13 +29,15 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch, onPres
           </View>
         </View>
 
-        <TouchableOpacity activeOpacity={0.7} className="h-10 w-10 overflow-hidden rounded-full border-2 border-white shadow-sm">
-          <Image
-            source={{
-              uri: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=240&q=60',
-            }}
-            className="h-full w-full"
-          />
+        <TouchableOpacity 
+          activeOpacity={0.7} 
+          className="h-10 w-10 overflow-hidden rounded-full border-2 border-white shadow-sm items-center justify-center bg-[#F4F4F4]"
+          onPress={() => router.push('/(tabs)/settings')}>
+          {user.avatar ? (
+            <Image source={{ uri: user.avatar }} className="h-full w-full" />
+          ) : (
+            <Feather name="user" size={20} color="#BBBBBB" />
+          )}
         </TouchableOpacity>
       </View>
 

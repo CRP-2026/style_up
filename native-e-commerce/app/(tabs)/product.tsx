@@ -1,5 +1,4 @@
-import { Stack } from 'expo-router';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import {
   Animated,
   FlatList,
@@ -47,6 +46,7 @@ const DEFAULT_FILTER: FilterSheetState = {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ search?: string; categoryId?: string; openCamera?: string }>();
   const locale = getAppLocale();
   const L = strings(locale);
   const { width } = useWindowDimensions();
@@ -75,6 +75,19 @@ export default function HomeScreen() {
   const [aiResults, setAiResults] = useState<ImageSearchResult[]>([]);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiHasSearched, setAiHasSearched] = useState(false);
+
+  useEffect(() => {
+    if (params.search !== undefined) {
+      setSearchInput(params.search);
+      setActiveSearch(params.search);
+    }
+    if (params.categoryId !== undefined) {
+      setActiveCategory(params.categoryId);
+    }
+    if (params.openCamera === 'true') {
+      setShowImageSourceSheet(true);
+    }
+  }, [params.search, params.categoryId, params.openCamera]);
 
   const filterPayload: ProductFilter = useMemo(
     () => ({

@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { ActivityIndicator, ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -46,11 +46,13 @@ function ProductCarousel({ products }: { products: ProductSummary[] }) {
 export default function HomeScreen() {
   const locale = getAppLocale();
   const L = strings(locale);
+  const router = useRouter();
 
   const [homeCategories, setHomeCategories] = useState<Category[]>([]);
   const [homeProducts, setHomeProducts] = useState<ProductSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -89,7 +91,16 @@ export default function HomeScreen() {
 
       <ScrollView className="flex-1 bg-[#F4F4F4]" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View className="mt-4 px-4 pt-3">
-          <HomeHeader />
+          <HomeHeader 
+            searchValue={searchInput}
+            onSearchChange={setSearchInput}
+            onSubmitSearch={() => {
+              if (searchInput.trim()) {
+                router.push({ pathname: '/(tabs)/product', params: { search: searchInput.trim() } });
+              }
+            }}
+            onPressCamera={() => router.push({ pathname: '/(tabs)/product', params: { openCamera: 'true' } })}
+          />
 
           <View className="mt-4 flex-row items-center justify-between">
             <Text className="text-[18px] font-semibold leading-[22px] text-[#232327]">Tất cả</Text>
@@ -127,7 +138,13 @@ export default function HomeScreen() {
             </View>
           ) : (
             <>
-              <CategoryList categories={homeCategories} />
+              <CategoryList 
+                categories={homeCategories} 
+                onSelect={(id) => {
+                  if (id) router.push({ pathname: '/(tabs)/product', params: { categoryId: id } });
+                  else router.push('/(tabs)/product');
+                }}
+              />
               <HeroPromoBanner />
               
               <View className="mt-4 flex-row items-center justify-between rounded-[10px] bg-[#4A8AE8] px-3 py-3">
