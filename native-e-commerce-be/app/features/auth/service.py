@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import process
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -11,6 +12,17 @@ from app.core.config import settings
 from app.core.exceptions import AppError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.db.models import RevokedAccessToken, User
+
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
+from app.db.models import User
+
+import uuid
+import os
 
 
 def register_user(db: Session, store_id: int, email: str, password: str, name: str) -> User:
@@ -53,6 +65,68 @@ def login_user(db: Session, store_id: int, email: str, password: str) -> User:
         )
     return u
 
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+
+
+def google_login_user(
+    db: Session,
+    store_id: int,
+    id_token_str: str,
+):
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            id_token_str,
+            requests.Request(),
+            GOOGLE_CLIENT_ID
+        )
+
+    except ValueError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid Google token"
+        )
+
+    email = idinfo.get("email")
+    if not idinfo.get("email_verified"):
+        raise HTTPException(
+            status_code=401,
+            detail="Google email not verified"
+        )
+    name = idinfo.get("name")
+    avatar = idinfo.get("picture")
+
+    if not email:
+        raise HTTPException(
+            status_code=400,
+            detail="Google account has no email"
+        )
+
+    user = (
+        db.query(User)
+        .filter(
+            User.store_id == store_id,
+            User.email == email
+        )
+        .first()
+    )
+
+    if not user:
+        user = User(
+            id=str(uuid.uuid4()),
+            store_id=store_id,
+            email=email,
+            name=name or "Google User",
+            avatar=avatar,
+            password_hash=None,
+            is_active=True,
+            role="user",
+        )
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    return user
 
 def issue_token(user_id: str, store_id: int) -> str:
     jti = str(uuid.uuid4())
