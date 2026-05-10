@@ -56,13 +56,17 @@ export async function fetchProductById(id: string): Promise<ProductDetail> {
   return apiGet<ProductDetail>(`products/${encodeURIComponent(id)}`);
 }
 
+/** HF + tải ảnh catalog (pHash) có thể >25s — tránh abort oan so với API_TIMEOUT_MS mặc định. */
+const IMAGE_SEARCH_TIMEOUT_MS = 120_000;
+
 export async function searchProductsByImage(
   imageBase64: string,
   topK = 10
 ): Promise<ImageSearchResult[]> {
   const body = await apiPost<{ items: ImageSearchResult[] } | ImageSearchResult[]>(
     `products/search-by-image`,
-    { image_base64: imageBase64, top_k: topK }
+    { image_base64: imageBase64, top_k: topK },
+    { timeoutMs: IMAGE_SEARCH_TIMEOUT_MS }
   );
   return Array.isArray(body) ? body : (body.items ?? []);
 }

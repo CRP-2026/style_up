@@ -4,15 +4,17 @@ services:
   api:
     build: .
     ports:
-      - "8005:8000"
+      - "8000:8000"
     volumes:
       - .:/app # Mount code để live-reload
-      - ../database:/workspace-database:ro # metadata_jewelry.json cho AI image search
+      - ../database:/workspace-database:ro # metadata JSON cho AI (build bằng database/build_shoes_ai.py)
     env_file:
       - .env
     # Trong container, DB host là tên service `db` (khác với DATABASE_URL localhost khi chạy API trên máy host)
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-ecommerce}
+      # Mặc định khớp seed jewelry + output mặc định của build_shoes_ai.py (--output metadata_jewelry.json).
+      # Catalog giày (shoes_dim.csv): đặt AI_METADATA_PATH=/workspace-database/metadata_shoes.json trong .env hoặc đây.
       AI_METADATA_PATH: /workspace-database/metadata_jewelry.json
     depends_on:
       - db

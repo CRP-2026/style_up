@@ -1,20 +1,6 @@
-/**
- * Quick API sanity check (backend running). Bao gồm các kịch bản giày dép:
- *   - login + users/me
- *   - catalog list (lọc size + sort)
- *   - oversell scenario phải bị chặn
- *   - đặt đơn thực + admin chuyển trạng thái + huỷ đơn (rollback stock)
- *
- * Usage (PowerShell):
- *   $env:API_URL='http://127.0.0.1:8000/api/v1'
- *   $env:SMOKE_STORE_ID='2'
- *   $env:SMOKE_EMAIL='demo.shoes@gmail.com'
- *   $env:SMOKE_PASSWORD='demo123456'
- *   node scripts/smoke-api-check.mjs
- */
 const BASE = (process.env.API_URL ?? 'http://127.0.0.1:8000/api/v1').replace(/\/$/, '');
-const STORE_ID = process.env.SMOKE_STORE_ID ?? '2';
-const EMAIL = process.env.SMOKE_EMAIL ?? 'demo.shoes@gmail.com';
+const STORE_ID = process.env.SMOKE_STORE_ID ?? '1';
+const EMAIL = process.env.SMOKE_EMAIL ?? 'demo.jewelry@gmail.com';
 const PASS = process.env.SMOKE_PASSWORD ?? 'demo123456';
 
 async function req(path, { method = 'GET', token, body, expectError = false } = {}) {
@@ -68,11 +54,11 @@ async function main() {
   expect(me.body?.email, 'users/me missing email');
   console.log(`✓ login as ${me.body.email} (role=${me.body.role})`);
 
-  const filtered = await req('products?size=42&sort=price_asc');
+  // Test catalog: get all products (jewelry store has no size filter)
+  const filtered = await req('products?limit=20&sort=price_asc');
   const filteredItems = productListItems(filtered.body);
   expect(filteredItems.length > 0, 'products page has items');
-  expect(filteredItems.every((p) => p.variants.some((v) => v.size === '42')), 'every product has size 42');
-  console.log(`✓ catalog filter size=42 → ${filteredItems.length} products (page)`);
+  console.log(`✓ catalog page → ${filteredItems.length} products`);
 
   // Tìm sản phẩm có variant đủ stock để đặt
   const all = await req('products?in_stock=true&sort=newest&limit=200');

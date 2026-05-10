@@ -50,7 +50,10 @@ function inferDevHostnameFromExpo(): string | null {
     const h = parseHostnameFromHostField(go.debuggerHost);
     if (h) return normalizeHostForDevice(h);
   }
-  const legacy = Constants.manifest as { hostUri?: string; debuggerHost?: string } | null | undefined;
+  const legacy = Constants.manifest as
+    | { hostUri?: string; debuggerHost?: string }
+    | null
+    | undefined;
   if (legacy?.hostUri) {
     const h = parseHostnameFromHostField(legacy.hostUri);
     if (h) return normalizeHostForDevice(h);
@@ -93,8 +96,3 @@ if (explicitUrl) {
 export const API_BASE_URL = resolvedBase;
 
 export const STORE_ID = requireStoreId();
-
-/** Đồ án: sau khi đóng trình duyệt VNPAY, gọi API mock để ghi nhận paid (bật cùng VNPAY_ALLOW_MOCK trên BE). */
-export const VNPAY_MOCK_CALLBACK = ['1', 'true', 'yes'].includes(
-  (process.env.EXPO_PUBLIC_VNPAY_MOCK || '').trim().toLowerCase()
-);
