@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { FontAwesome, FontAwesome5, Ionicons } from '@expo/vector-icons';
 
-import { login } from '~/lib/api/auth';
+import { login, googleLogin } from '~/lib/api/auth';
 import { afterAuthLogin } from '~/lib/auth/session';
 import { getAppLocale, resolveLoginError, strings } from '~/lib/i18n';
 import { useToast } from '~/components/ToastProvider';
@@ -46,8 +46,24 @@ export default function LoginScreen() {
   }, [response]);
 
   const handleBackendLogin = async (googleToken: string) => {
-    console.log("Token gửi lên server:", googleToken);
-  };
+  try {
+    setSubmitting(true);
+
+    const res = await googleLogin(googleToken);
+
+    await afterAuthLogin(res.access_token);
+
+    router.replace('/(tabs)');
+  } catch (e) {
+    addToast(
+      'error',
+      'Google Login Failed',
+      resolveLoginError(e, locale)
+    );
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {

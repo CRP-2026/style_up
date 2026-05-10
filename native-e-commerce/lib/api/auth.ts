@@ -10,6 +10,19 @@ export async function login(email: string, password: string): Promise<TokenRespo
   );
 }
 
+export async function googleLogin(
+  idToken: string
+): Promise<TokenResponse> {
+  return apiPost<TokenResponse>(
+    'auth/google-login',
+    {
+      id_token: idToken,
+    },
+    {
+      skipAuth: true,
+    }
+  );
+}
 export async function register(
   name: string,
   email: string,

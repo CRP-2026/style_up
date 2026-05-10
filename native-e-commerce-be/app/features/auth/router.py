@@ -2,11 +2,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 from app.core.database import get_db
 from app.core.deps import get_store_id, get_token_payload
 from app.features.auth import service as auth_svc
 from app.features.auth.schemas import LoginRequest, SignupRequest, Token
+
+from app.features.auth.schemas import GoogleLoginRequest
 
 router = APIRouter()
 
@@ -22,8 +26,21 @@ def login(
     return Token(access_token=token)
 
 @router.post("/google-login")
-async def google_login(token_data: dict, db: Session = Depends(get_db)):
-    pass
+async def google_login(
+    payload: GoogleLoginRequest,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+) -> Token:
+
+    user = auth_svc.google_login_user(
+        db=db,
+        store_id=store_id,
+        id_token_str=payload.id_token,
+    )
+
+    token = auth_svc.issue_token(user.id, store_id)
+
+    return Token(access_token=token)
 
 
 @router.post("/register", response_model=Token)
