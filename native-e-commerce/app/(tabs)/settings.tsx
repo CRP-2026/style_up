@@ -31,6 +31,7 @@ export default function Settings() {
     { icon: 'user', label: 'Tài khoản của tôi', sublabel: 'Thông tin cá nhân', path: '/account/edit', color: '#F83758' },
     { icon: 'map-pin', label: 'Địa chỉ giao hàng', sublabel: 'Quản lý địa chỉ', path: '/addresses', color: '#8B5CF6' },
     { icon: 'shopping-bag', label: 'Đơn hàng của tôi', sublabel: 'Lịch sử mua hàng', path: '/(tabs)/order', color: '#F97316' },
+    { icon: 'shield', label: 'Trang Quản trị (Admin)', sublabel: 'Quản lý sản phẩm & đơn hàng', path: '/admin', color: '#7C3AED', badge: 'ADMIN' },
   ];
 
   const appItems: MenuItem[] = [
