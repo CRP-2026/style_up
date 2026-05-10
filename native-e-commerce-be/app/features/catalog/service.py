@@ -83,6 +83,14 @@ HF_VIT_URL = os.getenv(
     "HF_VIT_ENDPOINT",
     "https://router.huggingface.co/hf-inference/models/google/vit-base-patch16-224",
 )
+HF_CLIP_FALLBACK_URL = os.getenv(
+    "HF_CLIP_FALLBACK_ENDPOINT",
+    "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32",
+)
+HF_VIT_FALLBACK_URL = os.getenv(
+    "HF_VIT_FALLBACK_ENDPOINT",
+    "https://api-inference.huggingface.co/models/google/vit-base-patch16-224",
+)
 
 _META_CACHE: dict[str, object] = {"mtime": None, "items": [], "mode": "numeric"}
 
@@ -186,7 +194,8 @@ def _load_metadata_vectors() -> tuple[str, list[dict]]:
     for it in items_raw:
         if not isinstance(it, dict):
             continue
-        sid = str(it.get("id", "")).strip()
+        # Accept both 'id' and 'product_id' from JSON
+        sid = str(it.get("id", it.get("product_id", ""))).strip()
         if not sid:
             continue
         vec = _coerce_numeric_vector(it.get("vector"))
@@ -194,6 +203,7 @@ def _load_metadata_vectors() -> tuple[str, list[dict]]:
             parsed_items.append(
                 {
                     "product_id": sid,
+                    "id": sid,  # Keep both for compatibility
                     "name": str(it.get("name", "")).strip(),
                     "image_url": str(it.get("image_url", "")).strip(),
                     "numeric": vec,
@@ -207,6 +217,7 @@ def _load_metadata_vectors() -> tuple[str, list[dict]]:
             parsed_items.append(
                 {
                     "product_id": sid,
+                    "id": sid,  # Keep both for compatibility
                     "name": str(it.get("name", "")).strip(),
                     "image_url": str(it.get("image_url", "")).strip(),
                     "numeric": None,
@@ -224,16 +235,48 @@ def _hf_infer_vector(image_base64: str, *, mode: str) -> object:
     token = os.getenv("HF_TOKEN", "").strip()
     if not token:
         raise ValueError("Missing HF_TOKEN in backend environment")
-    endpoint = HF_CLIP_URL if mode == "numeric" else HF_VIT_URL
-    payload = {"inputs": f"data:image/jpeg;base64,{image_base64}"}
-    resp = requests.post(
-        endpoint,
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        json=payload,
-        timeout=HF_TIMEOUT_SECONDS,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    endpoints = [
+        HF_CLIP_URL if mode == "numeric" else HF_VIT_URL,
+        HF_CLIP_FALLBACK_URL if mode == "numeric" else HF_VIT_FALLBACK_URL,
+    ]
+    endpoints = list(dict.fromkeys([e.strip() for e in endpoints if e and e.strip()]))
+    
+    # Decode base64 to binary
+    try:
+        image_bytes = base64.b64decode(image_base64)
+    except Exception as e:
+        raise ValueError(f"Invalid base64 image: {e}")
+    
+    errors: list[str] = []
+    for endpoint in endpoints:
+        base_headers = {"Authorization": f"Bearer {token}"}
+        request_attempts = [
+            {
+                "files": {"data": ("image.jpg", image_bytes, "image/jpeg")},
+                "headers": base_headers,
+            },
+            {
+                "data": image_bytes,
+                "headers": {**base_headers, "Content-Type": "image/jpeg"},
+            },
+            {
+                "json": {"inputs": f"data:image/jpeg;base64,{image_base64}"},
+                "headers": {**base_headers, "Content-Type": "application/json"},
+            },
+        ]
+        for attempt in request_attempts:
+            try:
+                resp = requests.post(endpoint, timeout=HF_TIMEOUT_SECONDS, **attempt)
+                resp.raise_for_status()
+                return resp.json()
+            except requests.exceptions.HTTPError as e:
+                text = e.response.text[:200] if e.response is not None and e.response.text else ""
+                status = e.response.status_code if e.response is not None else "unknown"
+                errors.append(f"{endpoint} [{status}] {text}".strip())
+            except Exception as e:
+                errors.append(f"{endpoint} [request-error] {e}")
+
+    raise Exception("HF API error after endpoint/payload fallbacks: " + " | ".join(errors[:4]))
 
 
 def search_products_by_image(
@@ -248,16 +291,51 @@ def search_products_by_image(
         return []
 
     # sanity check base64
-    base64.b64decode(image_base64, validate=True)
-    query_raw = _hf_infer_vector(image_base64, mode=mode)
-    if mode == "numeric":
-        q_vec = _coerce_numeric_vector(query_raw)
-        if not q_vec:
-            return []
-    else:
-        q_labels = _coerce_label_scores(query_raw)
-        if not q_labels:
-            return []
+    try:
+        base64.b64decode(image_base64, validate=True)
+    except Exception:
+        return []
+    
+    # Try to get query vector from HF API
+    query_raw = None
+    q_vec = None
+    q_labels = None
+    
+    try:
+        query_raw = _hf_infer_vector(image_base64, mode=mode)
+        if mode == "numeric":
+            q_vec = _coerce_numeric_vector(query_raw)
+        else:
+            q_labels = _coerce_label_scores(query_raw)
+    except Exception as e:
+        # Fallback: if HF API fails or HF_TOKEN missing, skip and return featured products
+        import sys
+        print(f"⚠️  AI image search unavailable: {e}", file=sys.stderr)
+        # Return featured/top-rated products as fallback (better UX than random)
+        prod_rows = (
+            db.execute(
+                select(Product).where(
+                    Product.store_id == store_id,
+                    Product.deleted_at.is_(None),
+                )
+                .order_by(Product.rating_avg.desc())
+            )
+            .scalars()
+            .all()
+        )
+        return [
+            {
+                "product_id": p.id,
+                "name": p.name or "",
+                "image": p.default_image,
+                "price": float(p.base_price) if p.base_price else None,
+                "score": 0.5,  # neutral score for fallback results
+            }
+            for p in prod_rows[:max(1, int(top_k))]
+        ]
+    
+    if not q_vec and not q_labels:
+        return []
 
     scored: list[tuple[float, str, str, str]] = []
     for item in meta_items:
@@ -274,7 +352,7 @@ def search_products_by_image(
         scored.append(
             (
                 score,
-                str(item.get("product_id", "")),
+                str(item.get("id", item.get("product_id", ""))),  # Try 'id' first, fallback to 'product_id'
                 str(item.get("name", "")),
                 str(item.get("image_url", "")),
             )

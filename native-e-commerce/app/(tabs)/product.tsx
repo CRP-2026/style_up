@@ -1,10 +1,6 @@
-import { Stack } from 'expo-router';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import {
-  Animated,
   FlatList,
-  Image,
-  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -13,25 +9,21 @@ import {
 } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from 'expo-image-manipulator';
 
 import { CategoryList } from '../../components/home/CategoryList';
 import { FilterSheet, type FilterSheetState } from '../../components/home/FilterSheet';
 import { HomeHeader } from '../../components/home/HomeHeader';
+import { ImageSearchResults } from '../../components/home/ImageSearchResults';
+import { ImageSourceSheet } from '../../components/home/ImageSourceSheet';
 import { PillButton } from '../../components/home/PillButton';
 import { ProductCard } from '../../components/home/ProductCard';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
-import {
-  CATALOG_PAGE_SIZE,
-  fetchCategories,
-  fetchProducts,
-  searchProductsByImage,
-} from '~/lib/api/catalog';
+import { CATALOG_PAGE_SIZE, fetchCategories, fetchProducts } from '~/lib/api/catalog';
 import { ApiError } from '~/lib/api/errors';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
+import { useAiImageSearch } from '~/features/catalog/hooks/useAiImageSearch';
 import type { Category } from '../../lib/types/models';
-import type { ImageSearchResult, ProductFilter, ProductSummary } from '../../lib/types/products';
+import type { ProductFilter, ProductSummary } from '../../lib/types/products';
 
 const CATEGORY_PLACEHOLDER =
   'https://images.unsplash.com/photo-1515562140497-ee584338969a?auto=format&fit=crop&w=160&q=60';
@@ -45,7 +37,7 @@ const DEFAULT_FILTER: FilterSheetState = {
   sort: 'newest',
 };
 
-export default function HomeScreen() {
+export default function ProductCatalogScreen() {
   const router = useRouter();
   const locale = getAppLocale();
   const L = strings(locale);
@@ -70,11 +62,19 @@ export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [filterState, setFilterState] = useState<FilterSheetState>(DEFAULT_FILTER);
   const [showFilter, setShowFilter] = useState(false);
-  const [showImageSourceSheet, setShowImageSourceSheet] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiResults, setAiResults] = useState<ImageSearchResult[]>([]);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [aiHasSearched, setAiHasSearched] = useState(false);
+
+  const {
+    aiError,
+    aiHasSearched,
+    aiLoading,
+    aiResults,
+    clearResults,
+    closeSheet,
+    openSheet,
+    pickFromCamera,
+    pickFromLibrary,
+    sheetVisible,
+  } = useAiImageSearch();
 
   const filterPayload: ProductFilter = useMemo(
     () => ({
@@ -177,63 +177,6 @@ export default function HomeScreen() {
     (filterState.maxPrice ? 1 : 0) +
     (filterState.sort !== 'newest' ? 1 : 0);
 
-  const runAiImageSearch = useCallback(async (pickerResult: ImagePicker.ImagePickerResult) => {
-    if (pickerResult.canceled || !pickerResult.assets?.length) return;
-    setAiLoading(true);
-    setAiError(null);
-    setAiHasSearched(true);
-    try {
-      const selected = pickerResult.assets[0];
-      const manipulated = await ImageManipulator.manipulateAsync(
-        selected.uri,
-        [{ resize: { width: 300, height: 300 } }],
-        { compress: 0.72, format: ImageManipulator.SaveFormat.JPEG, base64: true }
-      );
-      const b64 = manipulated.base64;
-      if (!b64) {
-        throw new Error('Image base64 missing after compression');
-      }
-      const items = await searchProductsByImage(b64, 10);
-      setAiResults(items);
-    } catch (e) {
-      console.warn('[HomeScreen] AI image search failed', e);
-      setAiResults([]);
-      setAiError('Không thể tìm kiếm bằng ảnh. Vui lòng thử lại.');
-    } finally {
-      setAiLoading(false);
-    }
-  }, []);
-
-  const pickFromCamera = useCallback(async () => {
-    setShowImageSourceSheet(false);
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) {
-      setAiError('Bạn cần cấp quyền camera để chụp ảnh.');
-      return;
-    }
-    const res = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 0.8,
-      mediaTypes: ['images'],
-    });
-    await runAiImageSearch(res);
-  }, [runAiImageSearch]);
-
-  const pickFromLibrary = useCallback(async () => {
-    setShowImageSourceSheet(false);
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      setAiError('Bạn cần cấp quyền thư viện ảnh.');
-      return;
-    }
-    const res = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      quality: 0.8,
-      mediaTypes: ['images'],
-    });
-    await runAiImageSearch(res);
-  }, [runAiImageSearch]);
-
   return (
     <>
       <Stack.Screen options={{ title: 'Sản phẩm', headerShown: false }} />
@@ -244,12 +187,7 @@ export default function HomeScreen() {
             searchValue={searchInput}
             onSearchChange={setSearchInput}
             onSubmitSearch={() => setActiveSearch(searchInput.trim())}
-            onPressCamera={() => {
-              setAiError(null);
-              setAiHasSearched(false);
-              setAiResults([]);
-              setShowImageSourceSheet(true);
-            }}
+            onPressCamera={openSheet}
           />
 
           {(aiLoading || aiError || aiResults.length > 0 || aiHasSearched) && (
@@ -260,58 +198,23 @@ export default function HomeScreen() {
                 </Text>
                 {aiResults.length > 0 ? (
                   <TouchableOpacity
-                    onPress={() => {
-                      setAiResults([]);
-                      setAiError(null);
-                      setAiHasSearched(false);
-                    }}
+                    onPress={clearResults}
                     className="rounded-full border border-[#E5E7EB] px-2 py-1">
                     <Text className="text-[11px] font-semibold text-[#6B7280]">Xóa kết quả</Text>
                   </TouchableOpacity>
                 ) : null}
               </View>
 
-              {aiLoading ? (
-                <AiShimmerRow />
-              ) : aiError ? (
-                <Text className="text-[12px] text-[#B91C1C]">{aiError}</Text>
-              ) : aiResults.length === 0 ? (
-                <Text className="text-[12px] text-[#6B7280]">
-                  Không tìm thấy sản phẩm tương tự. Bạn thử ảnh rõ sản phẩm hơn nhé.
-                </Text>
-              ) : (
-                <FlatList
-                  horizontal
-                  data={aiResults}
-                  keyExtractor={(it) => it.product_id}
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 10 }}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      activeOpacity={0.86}
-                      className="w-[140px] rounded-[12px] border border-[#EEF2F7] bg-[#FAFAFB] p-2"
-                      onPress={() =>
-                        router.push(`/product/${encodeURIComponent(item.product_id)}`)
-                      }>
-                      <Image
-                        source={{ uri: item.image || CATEGORY_PLACEHOLDER }}
-                        className="h-[92px] w-full rounded-[10px]"
-                        resizeMode="cover"
-                      />
-                      <Text
-                        className="mt-2 text-[12px] font-semibold text-[#232327]"
-                        numberOfLines={2}>
-                        {item.name}
-                      </Text>
-                      <Text className="mt-1 text-[12px] text-[#111827]">
-                        {typeof item.price === 'number'
-                          ? `${item.price.toLocaleString('vi-VN')} đ`
-                          : 'Giá cập nhật sau'}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                />
-              )}
+              <ImageSearchResults
+                loading={aiLoading}
+                error={aiError}
+                hasSearched={aiHasSearched}
+                results={aiResults}
+                onPressResult={(productId) =>
+                  router.push(`/product/${encodeURIComponent(productId)}`)
+                }
+                onClear={clearResults}
+              />
             </View>
           )}
 
@@ -326,7 +229,7 @@ export default function HomeScreen() {
               <Text className="text-[20px] font-semibold leading-[24px] text-[#232327]">
                 {activeCategory
                   ? (homeCategories.find((c) => c.id === activeCategory)?.label ?? 'Catalog')
-                  : 'Tất cả giày'}
+                  : 'Tất cả trang sức'}
               </Text>
               {activeSearch ? (
                 <Text className="mt-0.5 text-[12px] text-[#6B7280]">Tìm: “{activeSearch}”</Text>
@@ -486,34 +389,12 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      <Modal
-        visible={showImageSourceSheet}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowImageSourceSheet(false)}>
-        <TouchableOpacity
-          activeOpacity={1}
-          className="flex-1 bg-black/35"
-          onPress={() => setShowImageSourceSheet(false)}>
-          <View className="mt-auto rounded-t-[18px] bg-white px-4 pb-6 pt-4">
-            <Text className="mb-3 text-center text-[16px] font-semibold text-[#232327]">
-              Tìm kiếm bằng ảnh
-            </Text>
-            <TouchableOpacity
-              className="mb-2 rounded-[12px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3"
-              onPress={() => void pickFromCamera()}>
-              <Text className="text-center text-[14px] font-semibold text-[#232327]">Chụp ảnh</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="rounded-[12px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3"
-              onPress={() => void pickFromLibrary()}>
-              <Text className="text-center text-[14px] font-semibold text-[#232327]">
-                Chọn từ thư viện
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      <ImageSourceSheet
+        visible={sheetVisible}
+        onClose={closeSheet}
+        onCamera={pickFromCamera}
+        onLibrary={pickFromLibrary}
+      />
 
       <FilterSheet
         visible={showFilter}
@@ -557,31 +438,6 @@ function ChipBadge({ label, onClear }: { label: string; onClear: () => void }) {
       <Text onPress={onClear} className="text-[12px] font-bold text-[#F97316]">
         ×
       </Text>
-    </View>
-  );
-}
-
-function AiShimmerRow() {
-  const opacity = useRef(new Animated.Value(0.35)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.35, duration: 700, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [opacity]);
-  return (
-    <View className="flex-row gap-2">
-      {[0, 1, 2].map((i) => (
-        <Animated.View
-          key={i}
-          style={{ opacity }}
-          className="h-[150px] w-[140px] rounded-[12px] bg-[#E5E7EB]"
-        />
-      ))}
     </View>
   );
 }
