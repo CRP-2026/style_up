@@ -22,7 +22,12 @@ import { HomeHeader } from '../../components/home/HomeHeader';
 import { PillButton } from '../../components/home/PillButton';
 import { ProductCard } from '../../components/home/ProductCard';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
-import { CATALOG_PAGE_SIZE, fetchCategories, fetchProducts, searchProductsByImage } from '~/lib/api/catalog';
+import {
+  CATALOG_PAGE_SIZE,
+  fetchCategories,
+  fetchProducts,
+  searchProductsByImage,
+} from '~/lib/api/catalog';
 import { ApiError } from '~/lib/api/errors';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
 import type { Category } from '../../lib/types/models';
@@ -145,10 +150,7 @@ export default function HomeScreen() {
 
   const totalPages =
     totalProducts > 0 ? Math.max(1, Math.ceil(totalProducts / CATALOG_PAGE_SIZE)) : 1;
-  const pageNumbers = useMemo(
-    () => buildPaginationPages(page, totalPages),
-    [page, totalPages]
-  );
+  const pageNumbers = useMemo(() => buildPaginationPages(page, totalPages), [page, totalPages]);
 
   const availableColors = useMemo(() => {
     const set = new Set<string>();
@@ -175,35 +177,32 @@ export default function HomeScreen() {
     (filterState.maxPrice ? 1 : 0) +
     (filterState.sort !== 'newest' ? 1 : 0);
 
-  const runAiImageSearch = useCallback(
-    async (pickerResult: ImagePicker.ImagePickerResult) => {
-      if (pickerResult.canceled || !pickerResult.assets?.length) return;
-      setAiLoading(true);
-      setAiError(null);
-      setAiHasSearched(true);
-      try {
-        const selected = pickerResult.assets[0];
-        const manipulated = await ImageManipulator.manipulateAsync(
-          selected.uri,
-          [{ resize: { width: 300, height: 300 } }],
-          { compress: 0.72, format: ImageManipulator.SaveFormat.JPEG, base64: true }
-        );
-        const b64 = manipulated.base64;
-        if (!b64) {
-          throw new Error('Image base64 missing after compression');
-        }
-        const items = await searchProductsByImage(b64, 10);
-        setAiResults(items);
-      } catch (e) {
-        console.warn('[HomeScreen] AI image search failed', e);
-        setAiResults([]);
-        setAiError('Không thể tìm kiếm bằng ảnh. Vui lòng thử lại.');
-      } finally {
-        setAiLoading(false);
+  const runAiImageSearch = useCallback(async (pickerResult: ImagePicker.ImagePickerResult) => {
+    if (pickerResult.canceled || !pickerResult.assets?.length) return;
+    setAiLoading(true);
+    setAiError(null);
+    setAiHasSearched(true);
+    try {
+      const selected = pickerResult.assets[0];
+      const manipulated = await ImageManipulator.manipulateAsync(
+        selected.uri,
+        [{ resize: { width: 300, height: 300 } }],
+        { compress: 0.72, format: ImageManipulator.SaveFormat.JPEG, base64: true }
+      );
+      const b64 = manipulated.base64;
+      if (!b64) {
+        throw new Error('Image base64 missing after compression');
       }
-    },
-    []
-  );
+      const items = await searchProductsByImage(b64, 10);
+      setAiResults(items);
+    } catch (e) {
+      console.warn('[HomeScreen] AI image search failed', e);
+      setAiResults([]);
+      setAiError('Không thể tìm kiếm bằng ảnh. Vui lòng thử lại.');
+    } finally {
+      setAiLoading(false);
+    }
+  }, []);
 
   const pickFromCamera = useCallback(async () => {
     setShowImageSourceSheet(false);
@@ -237,7 +236,7 @@ export default function HomeScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Home', headerShown: false }} />
+      <Stack.Screen options={{ title: 'Sản phẩm', headerShown: false }} />
 
       <ScrollView className="flex-1 bg-[#F4F4F4]" showsVerticalScrollIndicator={false}>
         <View className="mt-4 px-4 pb-10 pt-4">
@@ -299,7 +298,9 @@ export default function HomeScreen() {
                         className="h-[92px] w-full rounded-[10px]"
                         resizeMode="cover"
                       />
-                      <Text className="mt-2 text-[12px] font-semibold text-[#232327]" numberOfLines={2}>
+                      <Text
+                        className="mt-2 text-[12px] font-semibold text-[#232327]"
+                        numberOfLines={2}>
                         {item.name}
                       </Text>
                       <Text className="mt-1 text-[12px] text-[#111827]">
@@ -324,13 +325,11 @@ export default function HomeScreen() {
             <View>
               <Text className="text-[20px] font-semibold leading-[24px] text-[#232327]">
                 {activeCategory
-                  ? homeCategories.find((c) => c.id === activeCategory)?.label ?? 'Catalog'
+                  ? (homeCategories.find((c) => c.id === activeCategory)?.label ?? 'Catalog')
                   : 'Tất cả giày'}
               </Text>
               {activeSearch ? (
-                <Text className="mt-0.5 text-[12px] text-[#6B7280]">
-                  Tìm: “{activeSearch}”
-                </Text>
+                <Text className="mt-0.5 text-[12px] text-[#6B7280]">Tìm: “{activeSearch}”</Text>
               ) : null}
             </View>
             <View className="flex-row items-center gap-2">
@@ -357,10 +356,16 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {(activeSearch || activeCategory || activeFilterCount > 0) ? (
+          {activeSearch || activeCategory || activeFilterCount > 0 ? (
             <View className="mt-3 flex-row flex-wrap items-center gap-2">
               {activeSearch ? (
-                <ChipBadge label={`"${activeSearch}"`} onClear={() => { setActiveSearch(''); setSearchInput(''); }} />
+                <ChipBadge
+                  label={`"${activeSearch}"`}
+                  onClear={() => {
+                    setActiveSearch('');
+                    setSearchInput('');
+                  }}
+                />
               ) : null}
               {activeCategory ? (
                 <ChipBadge
@@ -497,9 +502,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               className="mb-2 rounded-[12px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3"
               onPress={() => void pickFromCamera()}>
-              <Text className="text-center text-[14px] font-semibold text-[#232327]">
-                Chụp ảnh
-              </Text>
+              <Text className="text-center text-[14px] font-semibold text-[#232327]">Chụp ảnh</Text>
             </TouchableOpacity>
             <TouchableOpacity
               className="rounded-[12px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3"

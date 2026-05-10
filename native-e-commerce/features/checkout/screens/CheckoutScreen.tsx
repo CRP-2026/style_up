@@ -93,8 +93,7 @@ export default function CheckoutScreen() {
 
   const selectedAddress = useMemo(
     () =>
-      shippingAddresses.find((address) => address.id === selectedAddressId) ??
-      shippingAddresses[0],
+      shippingAddresses.find((address) => address.id === selectedAddressId) ?? shippingAddresses[0],
     [selectedAddressId, shippingAddresses]
   );
 
@@ -171,7 +170,7 @@ export default function CheckoutScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Checkout',
+          title: 'Thanh toán',
           headerShadowVisible: false,
         }}
       />
@@ -186,9 +185,14 @@ export default function CheckoutScreen() {
 
             {items.length === 0 ? (
               <View className="mt-5 rounded-[28px] bg-white p-6 shadow-sm">
-                <Text className="text-center text-[15px] text-[#6B7280]">{L.empty.checkoutCart}</Text>
+                <Text className="text-center text-[15px] text-[#6B7280]">
+                  {L.empty.checkoutCart}
+                </Text>
                 <View className="mt-4">
-                  <Button title={L.empty.checkoutBackShop} onPress={() => router.replace('/(tabs)')} />
+                  <Button
+                    title={L.empty.checkoutBackShop}
+                    onPress={() => router.replace('/(tabs)')}
+                  />
                 </View>
               </View>
             ) : (
@@ -197,14 +201,14 @@ export default function CheckoutScreen() {
                   <View className="flex-row items-center justify-between">
                     <View>
                       <Text className="text-[16px] font-semibold text-[#111827]">
-                        Shipping address
+                        Địa chỉ nhận hàng
                       </Text>
                       <Text className="mt-1 text-[13px] text-[#6B7280]">
-                        Where should we deliver?
+                        Chọn địa chỉ giao hàng cho đơn hàng này
                       </Text>
                     </View>
                     <Pressable onPress={() => router.push('/address')}>
-                      <Text className="text-[13px] font-semibold text-[#F97316]">Change</Text>
+                      <Text className="text-[13px] font-semibold text-[#F97316]">Đổi</Text>
                     </Pressable>
                   </View>
 
@@ -279,10 +283,10 @@ export default function CheckoutScreen() {
                     onPress={() => router.push('/addresses')}>
                     <View>
                       <Text className="text-[12px] uppercase tracking-[1.5px] text-[#6B7280]">
-                        Manage addresses
+                        Quản lý địa chỉ
                       </Text>
                       <Text className="mt-1 text-[13px] font-semibold text-[#111827]">
-                        Open address book
+                        Mở sổ địa chỉ
                       </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
@@ -290,9 +294,11 @@ export default function CheckoutScreen() {
                 </View>
 
                 <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-                  <Text className="text-[16px] font-semibold text-[#111827]">Payment method</Text>
+                  <Text className="text-[16px] font-semibold text-[#111827]">
+                    Phương thức thanh toán
+                  </Text>
                   <Text className="mt-1 text-[13px] text-[#6B7280]">
-                    Choose how you want to pay
+                    Chọn cách bạn muốn thanh toán
                   </Text>
 
                   <View className="mt-4 gap-3">
@@ -344,7 +350,7 @@ export default function CheckoutScreen() {
                 <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
                   <Text className="text-[16px] font-semibold text-[#111827]">Promo code</Text>
                   <Text className="mt-1 text-[13px] text-[#6B7280]">
-                    Mã sẽ được backend kiểm tra khi đặt đơn.
+                    Mã sẽ được kiểm tra khi đặt đơn.
                   </Text>
                   <View className="mt-3 flex-row items-end gap-2">
                     <View className="flex-1">
@@ -368,7 +374,9 @@ export default function CheckoutScreen() {
                   </View>
                   {promoCode ? (
                     <View className="mt-3 flex-row items-center justify-between rounded-[14px] bg-[#ECFDF3] px-3 py-2">
-                      <Text className="text-[12px] font-semibold text-[#166534]">Đang áp dụng: {promoCode}</Text>
+                      <Text className="text-[12px] font-semibold text-[#166534]">
+                        Đang áp dụng: {promoCode}
+                      </Text>
                       <Pressable onPress={() => setPromoCode(null)}>
                         <Text className="text-[12px] font-semibold text-[#166534]">Bỏ</Text>
                       </Pressable>
@@ -377,12 +385,14 @@ export default function CheckoutScreen() {
                 </View>
 
                 <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-                  <Text className="text-[16px] font-semibold text-[#111827]">Order summary</Text>
+                  <Text className="text-[16px] font-semibold text-[#111827]">Tóm tắt đơn hàng</Text>
 
                   <SummaryRow label="Subtotal" value={formatCurrency(subtotal)} />
                   <SummaryRow
                     label="Shipping"
-                    value={shipping === 0 && items.length > 0 ? 'Miễn phí' : formatCurrency(shipping)}
+                    value={
+                      shipping === 0 && items.length > 0 ? 'Miễn phí' : formatCurrency(shipping)
+                    }
                   />
                   <SummaryRow
                     label="Discount"
@@ -401,7 +411,7 @@ export default function CheckoutScreen() {
 
                   <View className="mt-3 rounded-[20px] bg-[#F8FAFC] p-3">
                     <Text className="text-[12px] uppercase tracking-[1.5px] text-[#6B7280]">
-                      Selected payment
+                      Phương thức thanh toán đã chọn
                     </Text>
                     <Text className="mt-1 text-[14px] font-semibold text-[#111827]">
                       {selectedPaymentMethod?.title}
@@ -411,7 +421,7 @@ export default function CheckoutScreen() {
 
                 <View className="mt-5">
                   <Button
-                    title={placing ? 'Placing…' : 'Place Order'}
+                    title={placing ? 'Placing…' : 'Xác nhận'}
                     onPress={handleCheckoutConfirm}
                     disabled={!canPlaceOrder}
                   />

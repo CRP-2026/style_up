@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { type LayoutChangeEvent, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { AppCard } from '~/components/ui/AppCard';
 import { EmptyBlock, LoadingBlock } from '~/components/ui/StateBlocks';
@@ -115,42 +115,74 @@ export default function AdminDashboardScreen() {
 }
 
 function LineChart({ rows }: { rows: { day: string; revenue: number; orders: number }[] }) {
+  const [plot, setPlot] = useState({ w: 0, h: 0 });
+
+  const onLayout = useCallback((e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setPlot({ w: width, h: height });
+  }, []);
+
   if (!rows.length) return null;
   const max = Math.max(...rows.map((r) => r.revenue), 1);
-  const points = rows.map((r, i) => ({
-    x: (i / Math.max(1, rows.length - 1)) * 100,
-    y: 100 - (r.revenue / max) * 100,
-  }));
+  const pad = 8;
+  const chartW = Math.max(0, plot.w - pad * 2);
+  const chartH = Math.max(0, plot.h - pad * 2);
+
+  const points =
+    chartW > 0 && chartH > 0
+      ? rows.map((r, i) => {
+          const x =
+            rows.length <= 1
+              ? pad + chartW / 2
+              : pad + (i / (rows.length - 1)) * chartW;
+          const y = pad + chartH * (1 - r.revenue / max);
+          return { x, y };
+        })
+      : [];
+
   return (
-    <View className="mt-3 h-28 rounded-[14px] bg-[#F8FAFC] p-2">
-      {points.slice(0, -1).map((p, idx) => {
-        const n = points[idx + 1];
-        const dx = n.x - p.x;
-        const dy = n.y - p.y;
-        const len = Math.sqrt(dx * dx + dy * dy);
-        const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-        return (
-          <View
-            key={`seg-${idx}`}
-            style={{
-              position: 'absolute',
-              left: `${p.x}%`,
-              top: `${p.y}%`,
-              width: `${len}%`,
-              height: 2,
-              backgroundColor: '#F97316',
-              transform: [{ rotate: `${angle}deg` }],
-            }}
-          />
-        );
-      })}
+    <View className="mt-3 rounded-[14px] bg-[#F8FAFC] p-2">
+      <View className="h-24 w-full" onLayout={onLayout}>
+      {points.length > 1
+        ? points.slice(0, -1).flatMap((p, idx) => {
+            const n = points[idx + 1]!;
+            const dx = n.x - p.x;
+            const dy = n.y - p.y;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len < 0.5) return [];
+            const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+            return [
+              <View
+                key={`seg-${idx}`}
+                style={{
+                  position: 'absolute',
+                  left: p.x,
+                  top: p.y,
+                  width: len,
+                  height: 2,
+                  backgroundColor: '#F97316',
+                  transform: [{ rotate: `${angle}deg` }],
+                  transformOrigin: '0 1px',
+                }}
+              />,
+            ];
+          })
+        : null}
       {points.map((p, idx) => (
         <View
           key={`dot-${rows[idx]?.day ?? idx}`}
-          style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%` }}
-          className="h-2.5 w-2.5 -translate-x-1 -translate-y-1 rounded-full bg-[#F97316]"
+          style={{
+            position: 'absolute',
+            left: p.x - 5,
+            top: p.y - 5,
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: '#F97316',
+          }}
         />
       ))}
+      </View>
     </View>
   );
 }

@@ -52,12 +52,13 @@ export function InventoryToolbar({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={{ flexGrow: 0 }}
       className="border-b border-[#E5E7EB] bg-white px-4 py-3"
-      contentContainerStyle={{ paddingRight: 8 }}>
-      <View className="flex-row gap-2">
+      contentContainerStyle={{ flexGrow: 0, alignItems: 'center', paddingRight: 8 }}>
+      <View className="flex-row items-center gap-2">
         <Pressable
           onPress={onCreate}
-          className="rounded-full border border-[#F97316] bg-[#FFF4ED] px-3 py-2">
+          className="shrink-0 rounded-full border border-[#F97316] bg-[#FFF4ED] px-3 py-2">
           <Text className="text-[12px] font-semibold text-[#F97316]">+ Tạo sản phẩm</Text>
         </Pressable>
         {(
@@ -72,7 +73,7 @@ export function InventoryToolbar({
             <Pressable
               key={opt.id}
               onPress={() => onFilterChange(opt.id)}
-              className={`rounded-full border px-3 py-2 ${
+              className={`shrink-0 rounded-full border px-3 py-2 ${
                 active ? 'border-[#F97316] bg-[#FFF4ED]' : 'border-[#E5E7EB] bg-white'
               }`}>
               <Text className={`text-[12px] font-semibold ${active ? 'text-[#F97316]' : 'text-[#374151]'}`}>

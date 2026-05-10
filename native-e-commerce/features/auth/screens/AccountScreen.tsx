@@ -33,7 +33,7 @@ export default function AccountScreen() {
         setLoading(true);
         setError(null);
         setNeedLogin(false);
-        
+
         const token = await getAccessToken();
         if (!token) {
           if (isMounted) {
@@ -43,7 +43,7 @@ export default function AccountScreen() {
           }
           return;
         }
-        
+
         try {
           const me = await fetchCurrentUser();
           if (isMounted) setUser(me);
@@ -96,8 +96,6 @@ export default function AccountScreen() {
       <Stack.Screen options={{ title: L.account.screenTitle }} />
 
       <ScrollView className="flex-1 bg-gray-100" showsVerticalScrollIndicator={false}>
-        
-        
         {/* 1. Trạng thái Loading */}
         {loading && (
           <View className="flex-1 items-center justify-center py-24">
@@ -194,11 +192,11 @@ export default function AccountScreen() {
               {/* Logic check Role Admin của bạn */}
               {user.role === 'admin' && (
                 <Pressable
-                  className="rounded-xl border border-[#FED7AA] bg-[#FFF7F2] py-4"
+                  className="mt-2 rounded-xl border border-[#FED7AA] bg-[#FFF7F2] py-4"
                   onPress={() => router.push('/admin' as never)}>
                   <View className="flex-row items-center justify-center gap-2">
                     <Ionicons name="shield-checkmark-outline" size={18} color="#F97316" />
-                    <Text className="text-center text-base font-semibold text-[#9A3412]">
+                    <Text className="mt-1 text-center text-base font-semibold text-[#9A3412]">
                       Vào trang quản trị
                     </Text>
                   </View>
@@ -207,7 +205,7 @@ export default function AccountScreen() {
 
               <Pressable
                 disabled={loggingOut}
-                className={`rounded-xl bg-orange-500 py-4 ${loggingOut ? 'opacity-60' : ''}`}
+                className={`mt-2 rounded-xl bg-orange-500 py-4 ${loggingOut ? 'opacity-60' : ''}`}
                 onPress={confirmLogout}>
                 <Text className="text-center text-base font-semibold text-white">
                   {loggingOut ? L.common.loading : L.account.logout}
@@ -222,7 +220,9 @@ export default function AccountScreen() {
       {showLogoutConfirm && (
         <View className="absolute inset-0 z-50 items-center justify-center bg-black/35 px-6">
           <View className="w-full max-w-[420px]  border border-[#FFE4D6] bg-white p-5 shadow-xl">
-            <Text className="text-[19px] font-bold text-[#1F2937]">{L.account.logoutConfirmTitle}</Text>
+            <Text className="text-[19px] font-bold text-[#1F2937]">
+              {L.account.logoutConfirmTitle}
+            </Text>
             <Text className="mt-2 text-[14px] leading-[21px] text-[#6B7280]">
               {L.account.logoutConfirmBody}
             </Text>

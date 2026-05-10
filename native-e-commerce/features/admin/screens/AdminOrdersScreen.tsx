@@ -1,12 +1,6 @@
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { useToast } from '~/components/ToastProvider';
 import { AppCard } from '~/components/ui/AppCard';
@@ -88,19 +82,21 @@ export default function AdminOrdersScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0 }}
           className="border-b border-[#E5E7EB] bg-white px-4 py-3"
-          contentContainerStyle={{ paddingRight: 8 }}>
-          <View className="flex-row gap-2">
+          contentContainerStyle={{ flexGrow: 0, alignItems: 'center', paddingRight: 8 }}>
+          <View className="flex-row items-center gap-2">
             {STATUS_FILTERS.map((opt) => {
               const active = filter === opt.id;
               return (
                 <Pressable
                   key={opt.id}
                   onPress={() => setFilter(opt.id)}
-                  className={`rounded-full border px-3 py-1.5 ${
+                  className={`flex-shrink-0 rounded-full border px-3 py-1.5 ${
                     active ? 'border-[#F97316] bg-[#FFF4ED]' : 'border-[#E5E7EB] bg-white'
                   }`}>
                   <Text
+                    numberOfLines={1}
                     className={`text-[12px] font-semibold ${
                       active ? 'text-[#F97316]' : 'text-[#374151]'
                     }`}>
@@ -113,6 +109,7 @@ export default function AdminOrdersScreen() {
         </ScrollView>
 
         <ScrollView
+          className="flex-1"
           contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
           refreshControl={
             <RefreshControl
@@ -141,7 +138,9 @@ export default function AdminOrdersScreen() {
                           <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">
                             Mã đơn
                           </Text>
-                          <Text className="mt-1 text-[16px] font-bold text-[#1F2937]">#{o.code}</Text>
+                          <Text className="mt-1 text-[16px] font-bold text-[#1F2937]">
+                            #{o.code}
+                          </Text>
                           <Text className="mt-1 text-[12px] text-[#6B7280]">
                             {formatDate(o.date)} • {o.shipName}
                           </Text>

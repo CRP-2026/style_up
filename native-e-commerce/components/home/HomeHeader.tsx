@@ -16,7 +16,7 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch, onPres
           <View className="h-8 w-8 items-center justify-center rounded-full bg-[#F97316]">
             <View className="h-5 w-5 rounded-full border-[3px] border-[#FFE4D6]" />
           </View>
-          <Text className="text-[28px] font-bold tracking-wide text-[#1F1F1F]">StepUp</Text>
+          <Text className="text-[28px] font-bold tracking-wide text-[#1F1F1F]">Style Up</Text>
         </View>
 
         <Image
@@ -31,7 +31,7 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch, onPres
         <Feather name="search" size={18} color="#BBBBBB" />
         <TextInput
           className="ml-[10px] flex-1 text-[14px] text-[#232327]"
-          placeholder="Tìm giày sneaker, boot, sandal..."
+          placeholder="Nhập để tìm kiếm..."
           placeholderTextColor="#BBBBBB"
           value={searchValue}
           onChangeText={onSearchChange}

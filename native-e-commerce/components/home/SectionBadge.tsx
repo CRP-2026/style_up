@@ -22,7 +22,7 @@ export function SectionBadge({ title, subtitle, background }: Props) {
       <TouchableOpacity
         activeOpacity={0.85}
         className="flex-row items-center gap-1 rounded-[8px] border border-white/70 px-3 py-[7px]">
-        <Text className="text-[12px] font-semibold text-white">View all</Text>
+        <Text className="text-[12px] font-semibold text-white">Xem tất cả</Text>
         <Feather name="arrow-right" size={14} color="white" />
       </TouchableOpacity>
     </View>

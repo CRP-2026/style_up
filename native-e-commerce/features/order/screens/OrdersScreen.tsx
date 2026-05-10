@@ -33,7 +33,7 @@ export default function OrdersScreen() {
   const locale = getAppLocale();
   const L = strings(locale);
   const statusFilters = useMemo((): { label: string; value: OrderFilter }[] => {
-    const o = L.orders; // Đã tối ưu đoạn này dùng L có sẵn
+    const o = L.orders;
     return [
       { label: o.filterAll, value: 'all' },
       { label: o.filterPending, value: 'pending' },
@@ -49,7 +49,6 @@ export default function OrdersScreen() {
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [needLogin, setNeedLogin] = useState(false);
 
-  // 1. ĐÃ SỬA: Đưa logic gọi API vào useEffect và dùng isMounted
   useEffect(() => {
     let isMounted = true;
 
@@ -83,7 +82,7 @@ export default function OrdersScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Order',
+          title: 'Đơn hàng',
           headerShadowVisible: false,
         }}
       />
@@ -94,8 +93,10 @@ export default function OrdersScreen() {
 
         <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
           <View className="px-5 pb-7 pt-2">
-            <Text className="text-[13px] uppercase tracking-[2.5px] text-[#2563EB]">History</Text>
-            <Text className="mt-2 text-[30px] font-bold text-[#0F172A]">My Orders</Text>
+            <Text className="text-[13px] uppercase tracking-[2.5px] text-[#2563EB]">
+              {L.orders.orderHistory}
+            </Text>
+            <Text className="mt-2 text-[30px] font-bold text-[#0F172A]">{L.orders.myOrders}</Text>
 
             {needLogin && (
               <View className="mt-4 rounded-[20px] bg-[#FEF3C7] p-4">
@@ -135,8 +136,6 @@ export default function OrdersScreen() {
               </View>
             </ScrollView>
 
-            {/* 2. ĐÃ SỬA: Tách các trường hợp Render thành các khối riêng biệt (bỏ ba ngôi lồng nhau) */}
-
             {/* Trường hợp 1: Đang tải dữ liệu */}
             {isLoading && (
               <View className="mt-5 gap-3">
@@ -175,6 +174,7 @@ export default function OrdersScreen() {
                     key={order.id}
                     order={order}
                     onPress={() => router.push(`/order/${encodeURIComponent(order.id)}`)}
+                    locale={locale}
                   />
                 ))}
               </View>
@@ -186,14 +186,25 @@ export default function OrdersScreen() {
   );
 }
 
-function OrderCard({ order, onPress }: { order: OrderSummary; onPress: () => void }) {
+function OrderCard({
+  order,
+  onPress,
+  locale,
+}: {
+  order: OrderSummary;
+  onPress: () => void;
+  locale: ReturnType<typeof getAppLocale>;
+}) {
+  const L = strings(locale);
   const badge = statusBadge(order.status);
 
   return (
     <Pressable onPress={onPress} className="rounded-[24px] bg-white p-4 shadow-sm">
       <View className="flex-row items-start justify-between">
         <View>
-          <Text className="text-[12px] uppercase tracking-[1.5px] text-[#64748B]">Order code</Text>
+          <Text className="text-[12px] uppercase tracking-[1.5px] text-[#64748B]">
+            {L.orders.orderCode}
+          </Text>
           <Text className="mt-1 text-[16px] font-bold text-[#0F172A]">#{order.code}</Text>
         </View>
         <View className={`rounded-full px-3 py-1 ${badge.tone.split(' ')[0]}`}>
@@ -207,13 +218,13 @@ function OrderCard({ order, onPress }: { order: OrderSummary; onPress: () => voi
 
       <View className="flex-row items-center justify-between">
         <View>
-          <Text className="text-[12px] text-[#64748B]">Placed on</Text>
+          <Text className="text-[12px] text-[#64748B]">{L.orders.placedOn}</Text>
           <Text className="mt-1 text-[14px] font-semibold text-[#0F172A]">
             {formatDate(order.date)}
           </Text>
         </View>
         <View>
-          <Text className="text-right text-[12px] text-[#64748B]">Total</Text>
+          <Text className="text-right text-[12px] text-[#64748B]">{L.orders.total}</Text>
           <Text className="mt-1 text-right text-[16px] font-bold text-[#0F172A]">
             {formatCurrency(order.total)}
           </Text>
@@ -221,9 +232,13 @@ function OrderCard({ order, onPress }: { order: OrderSummary; onPress: () => voi
       </View>
 
       <View className="mt-4 flex-row items-center justify-between rounded-[16px] bg-[#F8FAFC] px-3 py-2">
-        <Text className="text-[13px] text-[#334155]">{order.itemCount} item(s)</Text>
+        <Text className="text-[13px] text-[#334155]">
+          {order.itemCount} {L.orders.items}
+        </Text>
         <View className="flex-row items-center">
-          <Text className="mr-1 text-[13px] font-semibold text-[#2563EB]">View detail</Text>
+          <Text className="mr-1 text-[13px] font-semibold text-[#2563EB]">
+            {L.orders.viewDetail}
+          </Text>
           <Ionicons name="chevron-forward" size={14} color="#2563EB" />
         </View>
       </View>

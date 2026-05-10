@@ -8,12 +8,12 @@ export function HeroPromoBanner() {
         <View className="flex-row items-end justify-between">
           <View className="pb-6">
             <Text className="text-[18px] font-bold text-white">50-40% OFF</Text>
-            <Text className="mt-1 text-[14px] text-white/90">Now in (product)</Text>
-            <Text className="mt-1 text-[14px] text-white/90">All colours</Text>
+            <Text className="mt-1 text-[14px] text-white/90">Thời gian có hạn</Text>
+            <Text className="mt-1 text-[14px] text-white/90">Chỉ còn vài giờ nữa!</Text>
             <TouchableOpacity
               activeOpacity={0.85}
               className="mt-3 flex-row items-center gap-2 rounded-[8px] border border-white px-3 py-[7px]">
-              <Text className="text-[14px] font-semibold text-white">Shop Now</Text>
+              <Text className="text-[14px] font-semibold text-white">Mua ngay</Text>
               <Feather name="arrow-right" size={14} color="white" />
             </TouchableOpacity>
           </View>
@@ -39,14 +39,14 @@ export function HeroPromoBanner() {
 
 export function SpecialOffersCard() {
   return (
-    <View className="mt-5 flex-row items-center gap-4 rounded-[12px] bg-[#F0F0F0] p-4">
+    <View className="mt-6 flex-row items-center gap-4 rounded-[12px] bg-[#F0F0F0] p-4">
       <View className="h-[60px] w-[70px] items-center justify-center rounded-[12px] bg-[#FFF2F5]">
         <Ionicons name="pricetag" size={26} color="#F83758" />
       </View>
       <View className="flex-1">
-        <Text className="text-[14px] font-semibold text-[#232327]">Special Offers</Text>
+        <Text className="text-[14px] font-semibold text-[#232327]">Giảm giá đặc biệt</Text>
         <Text className="mt-1 text-[12px] leading-[16px] text-[#575757]">
-          We make sure you get the offer you need at best prices
+          Nhận ưu đãi lên đến 50% cho các sản phẩm được chọn
         </Text>
       </View>
     </View>
@@ -64,12 +64,14 @@ export function FlatAndHeelsCard() {
         resizeMode="cover"
       />
       <View className="flex-1">
-        <Text className="text-[17px] font-semibold text-[#232327]">Flat and Heels</Text>
-        <Text className="mt-1 text-[12px] text-[#575757]">Stand a chance to get rewarded</Text>
+        <Text className="text-[17px] font-semibold text-[#232327]">Ưu đãi đặc biệt</Text>
+        <Text className="mt-1 text-[12px] text-[#575757]">
+          Chúng tôi đảm bảo bạn nhận được ưu đãi bạn cần với mức giá tốt nhất
+        </Text>
         <TouchableOpacity
           activeOpacity={0.85}
           className="mt-2 self-start rounded-[8px] bg-[#F83758] px-3 py-[7px]">
-          <Text className="text-[12px] font-semibold text-white">Visit now</Text>
+          <Text className="text-[12px] font-semibold text-white">Xem chi tiết</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -92,11 +94,11 @@ export function NewArrivalsCard() {
   return (
     <View className="mt-4 flex-row items-center justify-between rounded-[12px] bg-white px-4 py-4">
       <View>
-        <Text className="text-[16px] font-semibold text-[#232327]">New Arrivals</Text>
-        <Text className="text-[12px] text-[#575757]">Summer &apos;25 Collections</Text>
+        <Text className="text-[16px] font-semibold text-[#232327]">Hàng mới về</Text>
+        <Text className="text-[12px] text-[#575757]">Bộ sưu tập mùa hè &apos;25</Text>
       </View>
       <TouchableOpacity activeOpacity={0.85} className="rounded-[8px] bg-[#F83758] px-3 py-[7px]">
-        <Text className="text-[12px] font-semibold text-white">View all</Text>
+        <Text className="text-[12px] font-semibold text-white">Xem tất cả</Text>
       </TouchableOpacity>
     </View>
   );
@@ -105,7 +107,7 @@ export function NewArrivalsCard() {
 export function SponsoredCard() {
   return (
     <View className="mt-5">
-      <Text className="text-[16px] font-semibold text-[#232327]">Sponsored</Text>
+      <Text className="text-[16px] font-semibold text-[#232327]">Được tài trợ</Text>
       <View className="mt-3 overflow-hidden rounded-[14px] bg-[#F3F3F3]">
         <Image
           source={{
@@ -115,7 +117,7 @@ export function SponsoredCard() {
           resizeMode="cover"
         />
         <View className="flex-row items-center justify-between bg-white px-4 py-3">
-          <Text className="text-[16px] font-semibold text-[#232327]">up to 50% Off</Text>
+          <Text className="text-[16px] font-semibold text-[#232327]">Lên đến 50% Off</Text>
           <Feather name="chevron-right" size={18} color="#232327" />
         </View>
       </View>

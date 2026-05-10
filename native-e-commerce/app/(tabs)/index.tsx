@@ -90,9 +90,7 @@ export default function HomeScreen() {
           <HomeHeader />
 
           <View className="mt-4 flex-row items-center justify-between">
-            <Text className="text-[18px] font-semibold leading-[22px] text-[#232327]">
-              All Featured
-            </Text>
+            <Text className="text-[18px] font-semibold leading-[22px] text-[#232327]">Tất cả</Text>
             <View className="flex-row items-center gap-3">
               <PillButton
                 label="Sort"
@@ -118,8 +116,8 @@ export default function HomeScreen() {
               <CategoryList categories={homeCategories} />
               <HeroPromoBanner />
               <SectionBadge
-                title="Deal of the Day"
-                subtitle="22h 55m 20s remaining"
+                title="GIảm giá trong ngày"
+                subtitle="22h 55m 20s còn lại"
                 background="#4A8AE8"
               />
               <ProductCarousel products={homeProducts} />
@@ -127,8 +125,8 @@ export default function HomeScreen() {
               <FlatAndHeelsCard />
 
               <SectionBadge
-                title="Trending Products"
-                subtitle="Last Date 29/02/22"
+                title="Sản phẩm đang được quan tâm"
+                subtitle="Ngày cuối cùng 29/02/22"
                 background="#F56F8C"
               />
               <ProductCarousel products={[...homeProducts].reverse()} />
