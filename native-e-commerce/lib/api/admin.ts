@@ -1,6 +1,7 @@
 import type { OrderDetail, OrderStatus } from '~/lib/types/orders';
 
 import { apiDelete, apiFetch, apiGet, apiPatch, apiPost } from '~/lib/api/client';
+import { Platform } from 'react-native';
 
 export type AdminOrderSummary = {
   id: string;
@@ -67,13 +68,15 @@ export async function adminSetVariantStock(
   stock: number,
   reason?: string
 ): Promise<AdminVariantStock> {
-  return apiPatch<AdminVariantStock>(
-    `admin/variants/${encodeURIComponent(variantId)}/stock`,
-    { stock, reason }
-  );
+  return apiPatch<AdminVariantStock>(`admin/variants/${encodeURIComponent(variantId)}/stock`, {
+    stock,
+    reason,
+  });
 }
 
-export async function adminBulkSetVariantStock(items: { variantId: string; stock: number; reason?: string }[]) {
+export async function adminBulkSetVariantStock(
+  items: { variantId: string; stock: number; reason?: string }[]
+) {
   return apiPost<{ updatedCount: number }>('admin/variants/bulk-stock', { items });
 }
 
@@ -179,8 +182,12 @@ export async function adminUpdateProduct(
   return apiPatch<{ id: string }>(`admin/products/${encodeURIComponent(productId)}`, payload);
 }
 
-export async function adminDeleteProduct(productId: string): Promise<{ id: string; deleted: boolean }> {
-  return apiDelete<{ id: string; deleted: boolean }>(`admin/products/${encodeURIComponent(productId)}`);
+export async function adminDeleteProduct(
+  productId: string
+): Promise<{ id: string; deleted: boolean }> {
+  return apiDelete<{ id: string; deleted: boolean }>(
+    `admin/products/${encodeURIComponent(productId)}`
+  );
 }
 
 export async function adminCreateVariant(
@@ -397,22 +404,35 @@ export async function adminDeleteCategory(
   );
 }
 
-export async function adminUploadMedia(file: {
-  uri: string;
-  name?: string;
-  type?: string;
-}, folder = 'products'): Promise<{ url: string; path: string }> {
+export async function adminUploadMedia(
+  file: {
+    uri: string;
+    name?: string;
+    type?: string;
+  },
+  folder = 'products'
+): Promise<{ url: string; path: string }> {
   const formData = new FormData();
-  formData.append('file', {
-    uri: file.uri,
-    name: file.name ?? `upload-${Date.now()}.jpg`,
-    type: file.type ?? 'image/jpeg',
-  } as never);
+  const fileName = file.name ?? `upload-${Date.now()}.jpg`;
+  const fileType = file.type ?? 'image/jpeg';
+
+  if (Platform.OS === 'web') {
+    const response = await fetch(file.uri);
+    const blob = await response.blob();
+    const uploadBlob = blob.type ? blob : blob.slice(0, blob.size, fileType);
+    formData.append('file', uploadBlob, fileName);
+  } else {
+    formData.append('file', {
+      uri: file.uri,
+      name: fileName,
+      type: fileType,
+    } as unknown as Blob);
+  }
+
   const q = encodeURIComponent(folder);
   return apiFetch<{ url: string; path: string }>(`admin/media/upload?folder=${q}`, {
     method: 'POST',
     body: formData,
-    headers: {},
   });
 }
 
@@ -425,10 +445,14 @@ export async function adminDashboardSummary(): Promise<{
   return apiGet('admin/dashboard/summary');
 }
 
-export async function adminDashboardRevenue(days = 7): Promise<{ day: string; revenue: number; orders: number }[]> {
+export async function adminDashboardRevenue(
+  days = 7
+): Promise<{ day: string; revenue: number; orders: number }[]> {
   return apiGet(`admin/dashboard/revenue?days=${days}`);
 }
 
-export async function adminDashboardTopProducts(limit = 5): Promise<{ productId: string; name: string; quantity: number; revenue: number }[]> {
+export async function adminDashboardTopProducts(
+  limit = 5
+): Promise<{ productId: string; name: string; quantity: number; revenue: number }[]> {
   return apiGet(`admin/dashboard/top-products?limit=${limit}`);
 }

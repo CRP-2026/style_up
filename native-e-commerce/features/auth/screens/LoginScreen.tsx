@@ -8,6 +8,12 @@ import { afterAuthLogin } from '~/lib/auth/session';
 import { getAppLocale, resolveLoginError, strings } from '~/lib/i18n';
 import { useToast } from '~/components/ToastProvider';
 
+// import * as Google from 'expo-auth-session/providers/google';
+// import * as WebBrowser from 'expo-web-browser';
+// import * as AuthSession from 'expo-auth-session';
+
+// WebBrowser.maybeCompleteAuthSession();
+
 export default function LoginScreen() {
   const locale = getAppLocale();
   const L = strings(locale);
@@ -18,6 +24,45 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+  // const redirectUri = AuthSession.makeRedirectUri({
+  //   scheme: 'jewelry-store',
+  // });
+
+  // console.log('Redirect URI:', redirectUri);
+
+  // const [request, response, promptAsync] = Google.useAuthRequest({
+  //   clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
+  //   androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
+  //   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
+  //   redirectUri,
+  // });
+
+  // useEffect(() => {
+  //   if (response?.type === 'success') {
+  //     const { id_token } = response.params;
+  //     handleBackendLogin(id_token);
+  //   }
+  // }, [response]);
+
+  // const handleBackendLogin = async (googleToken: string) => {
+  // try {
+  //   setSubmitting(true);
+
+  //   const res = await googleLogin(googleToken);
+
+  //   await afterAuthLogin(res.access_token);
+
+  //   router.replace('/(tabs)');
+  // } catch (e) {
+  //   addToast(
+  //     'error',
+  //     'Google Login Failed',
+  //     resolveLoginError(e, locale)
+  //   );
+  // } finally {
+  //   setSubmitting(false);
+  // }
+  // };
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
@@ -102,7 +147,11 @@ export default function LoginScreen() {
         <View className="mt-[75px] items-center">
           <Text className="text-md mb-5 font-medium text-[#575757]">- OR Continue with -</Text>
           <View className="flex-row gap-[10px]">
-            <TouchableOpacity className="h-[54px] w-[54px] items-center justify-center rounded-full border border-[#F83758] bg-[#FCF3F6]">
+            <TouchableOpacity
+              disabled={true}
+              // disabled={!request}
+              // onPress={() => promptAsync()}
+              className="h-[54px] w-[54px] items-center justify-center rounded-full border border-[#F83758] bg-[#FCF3F6] opacity-50">
               <FontAwesome name="google" size={24} color="#DB4437" />
             </TouchableOpacity>
             <TouchableOpacity className="h-[54px] w-[54px] items-center justify-center rounded-full border border-[#F83758] bg-[#FCF3F6]">

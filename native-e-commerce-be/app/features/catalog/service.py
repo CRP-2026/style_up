@@ -4,7 +4,9 @@ import base64
 import json
 import math
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from urllib.parse import urlparse
 
 import requests
 from sqlalchemy import and_, exists, func, select, tuple_
@@ -75,6 +77,9 @@ def _load_images_bulk(db: Session, keys: list[tuple[int, str]]) -> dict[tuple[in
 
 _SORT_OPTIONS = {"newest", "price_asc", "price_desc", "rating_desc", "name_asc"}
 HF_TIMEOUT_SECONDS = 30
+IMAGE_DOWNLOAD_TIMEOUT_SECONDS = 5
+PHASH_CATALOG_CAP = 56
+PHASH_MAX_WORKERS = 10
 HF_CLIP_URL = os.getenv(
     "HF_CLIP_ENDPOINT",
     "https://router.huggingface.co/hf-inference/models/openai/clip-vit-base-patch32",
@@ -83,8 +88,31 @@ HF_VIT_URL = os.getenv(
     "HF_VIT_ENDPOINT",
     "https://router.huggingface.co/hf-inference/models/google/vit-base-patch16-224",
 )
+HF_CLIP_FALLBACK_URL = os.getenv(
+    "HF_CLIP_FALLBACK_ENDPOINT",
+    "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32",
+)
+HF_VIT_FALLBACK_URL = os.getenv(
+    "HF_VIT_FALLBACK_ENDPOINT",
+    "https://api-inference.huggingface.co/models/google/vit-base-patch16-224",
+)
 
 _META_CACHE: dict[str, object] = {"mtime": None, "items": [], "mode": "numeric"}
+
+
+def _image_url_canonical(url: str) -> str:
+    """Chuẩn hóa URL ảnh (bỏ query/fragment) để map metadata ↔ DB khi chỉ khác tham số ?w=."""
+    u = (url or "").strip()
+    if not u:
+        return ""
+    parsed = urlparse(u)
+    netloc = (parsed.netloc or "").lower()
+    path = (parsed.path or "").rstrip("/").lower()
+    if not netloc and path.startswith("//"):
+        inner = urlparse("https:" + path)
+        netloc = (inner.netloc or "").lower()
+        path = (inner.path or "").rstrip("/").lower()
+    return f"{netloc}{path}" if netloc else path
 
 
 def _slugify_local(value: str) -> str:
@@ -110,6 +138,13 @@ def _metadata_path() -> Path:
 
 
 def _coerce_numeric_vector(raw: object) -> list[float] | None:
+    if isinstance(raw, dict):
+        for key in ("embedding", "embeddings", "image_embedding", "vector", "data"):
+            if key in raw:
+                inner = _coerce_numeric_vector(raw[key])
+                if inner is not None:
+                    return inner
+        return None
     if isinstance(raw, list) and raw and isinstance(raw[0], (int, float)):
         return [float(x) for x in raw]
     if isinstance(raw, list) and len(raw) == 1 and isinstance(raw[0], list):
@@ -132,6 +167,20 @@ def _coerce_label_scores(raw: object) -> dict[str, float] | None:
             continue
         pairs[label] = float(score)
     return pairs or None
+
+
+def _metadata_numeric_dim(meta_items: list[dict]) -> int | None:
+    for item in meta_items:
+        vec = item.get("numeric")
+        if isinstance(vec, list) and vec and isinstance(vec[0], (int, float)):
+            return len(vec)
+    return None
+
+
+def _is_nondegenerate_embedding(vec: list[float]) -> bool:
+    if len(vec) < 8:
+        return False
+    return sum(abs(x) for x in vec) > 1e-12
 
 
 def _cosine_numeric(a: list[float], b: list[float]) -> float:
@@ -186,7 +235,8 @@ def _load_metadata_vectors() -> tuple[str, list[dict]]:
     for it in items_raw:
         if not isinstance(it, dict):
             continue
-        sid = str(it.get("id", "")).strip()
+        # Accept both 'id' and 'product_id' from JSON
+        sid = str(it.get("id", it.get("product_id", ""))).strip()
         if not sid:
             continue
         vec = _coerce_numeric_vector(it.get("vector"))
@@ -194,6 +244,7 @@ def _load_metadata_vectors() -> tuple[str, list[dict]]:
             parsed_items.append(
                 {
                     "product_id": sid,
+                    "id": sid,  # Keep both for compatibility
                     "name": str(it.get("name", "")).strip(),
                     "image_url": str(it.get("image_url", "")).strip(),
                     "numeric": vec,
@@ -207,6 +258,7 @@ def _load_metadata_vectors() -> tuple[str, list[dict]]:
             parsed_items.append(
                 {
                     "product_id": sid,
+                    "id": sid,  # Keep both for compatibility
                     "name": str(it.get("name", "")).strip(),
                     "image_url": str(it.get("image_url", "")).strip(),
                     "numeric": None,
@@ -220,48 +272,229 @@ def _load_metadata_vectors() -> tuple[str, list[dict]]:
     return mode, parsed_items
 
 
-def _hf_infer_vector(image_base64: str, *, mode: str) -> object:
+def _hf_infer_vector(
+    image_base64: str,
+    *,
+    mode: str,
+    expected_numeric_dim: int | None = None,
+) -> object:
     token = os.getenv("HF_TOKEN", "").strip()
     if not token:
         raise ValueError("Missing HF_TOKEN in backend environment")
-    endpoint = HF_CLIP_URL if mode == "numeric" else HF_VIT_URL
-    payload = {"inputs": f"data:image/jpeg;base64,{image_base64}"}
-    resp = requests.post(
-        endpoint,
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        json=payload,
-        timeout=HF_TIMEOUT_SECONDS,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    endpoints = [
+        HF_CLIP_URL if mode == "numeric" else HF_VIT_URL,
+        HF_CLIP_FALLBACK_URL if mode == "numeric" else HF_VIT_FALLBACK_URL,
+    ]
+    endpoints = list(dict.fromkeys([e.strip() for e in endpoints if e and e.strip()]))
+
+    # Decode base64 to binary
+    try:
+        image_bytes = base64.b64decode(image_base64)
+    except Exception as e:
+        raise ValueError(f"Invalid base64 image: {e}")
+
+    errors: list[str] = []
+    for endpoint in endpoints:
+        base_headers = {"Authorization": f"Bearer {token}"}
+        request_attempts = [
+            {
+                "files": {"data": ("image.jpg", image_bytes, "image/jpeg")},
+                "headers": base_headers,
+            },
+            {
+                "data": image_bytes,
+                "headers": {**base_headers, "Content-Type": "image/jpeg"},
+            },
+            {
+                "json": {"inputs": f"data:image/jpeg;base64,{image_base64}"},
+                "headers": {**base_headers, "Content-Type": "application/json"},
+            },
+        ]
+        for attempt in request_attempts:
+            try:
+                resp = requests.post(endpoint, timeout=HF_TIMEOUT_SECONDS, **attempt)
+                resp.raise_for_status()
+                raw = resp.json()
+                if mode == "numeric" and expected_numeric_dim is not None:
+                    q = _coerce_numeric_vector(raw)
+                    q_len = len(q) if q is not None else 0
+                    if (
+                        q is None
+                        or q_len != expected_numeric_dim
+                        or not _is_nondegenerate_embedding(q)
+                    ):
+                        errors.append(
+                            f"{endpoint} [embedding-invalid] dim={q_len} expected={expected_numeric_dim}"
+                        )
+                        break
+                return raw
+            except requests.exceptions.HTTPError as e:
+                text = e.response.text[:200] if e.response is not None and e.response.text else ""
+                status = e.response.status_code if e.response is not None else "unknown"
+                errors.append(f"{endpoint} [{status}] {text}".strip())
+            except Exception as e:
+                errors.append(f"{endpoint} [request-error] {e}")
+
+    raise Exception("HF API error after endpoint/payload fallbacks: " + " | ".join(errors[:8]))
 
 
-def search_products_by_image(
+def _decode_search_image_base64(b64_in: str) -> bytes | None:
+    """Giải mã base64 từ app (Expo), cho phép thiếu padding — tránh trả rỗng oan."""
+    s = "".join((b64_in or "").split())
+    low = s.lower()
+    if "base64," in low:
+        s = s.split("base64,", 1)[1].strip()
+    if len(s) < 20:
+        return None
+    pad = (-len(s)) % 4
+    if pad:
+        s += "=" * pad
+    try:
+        return base64.b64decode(s, validate=False)
+    except Exception:
+        return None
+
+
+def _search_products_by_image_embedding(
     db: Session,
     store_id: int,
     *,
-    image_base64: str,
-    top_k: int = 10,
+    image_bytes: bytes,
+    top_k: int,
 ) -> list[dict]:
-    # --- MOCKED FOR DEMO PURPOSES ---
-    # Since HF_TOKEN is not provided and metadata vectors are not generated,
-    # we return random products from the database to simulate a successful AI search.
-    
-    # sanity check base64
-    base64.b64decode(image_base64, validate=True)
-    
-    products = db.execute(
-        select(Product)
-        .where(Product.store_id == store_id, Product.deleted_at.is_(None))
-        .order_by(func.random())
-        .limit(top_k)
-    ).scalars().all()
-    
+    mode, meta_items = _load_metadata_vectors()
+    if not meta_items:
+        return []
+
+    image_base64 = base64.b64encode(image_bytes).decode("ascii")
+    meta_dim = _metadata_numeric_dim(meta_items) if mode == "numeric" else None
+
+    query_raw = None
+    q_vec = None
+    q_labels = None
+
+    try:
+        query_raw = _hf_infer_vector(
+            image_base64,
+            mode=mode,
+            expected_numeric_dim=meta_dim,
+        )
+        if mode == "numeric":
+            q_vec = _coerce_numeric_vector(query_raw)
+        else:
+            q_labels = _coerce_label_scores(query_raw)
+    except Exception as e:
+        import sys
+
+        print(f"⚠️  AI image search unavailable (HF): {e}", file=sys.stderr)
+        return []
+
+    if not q_vec and not q_labels:
+        return []
+
+    scored: list[tuple[float, str, str, str]] = []
+    for item in meta_items:
+        if mode == "numeric":
+            vec = item.get("numeric")
+            if not isinstance(vec, list):
+                continue
+            score = _cosine_numeric(q_vec, vec)
+        else:
+            labels = item.get("labels")
+            if not isinstance(labels, dict):
+                continue
+            score = _cosine_labels(q_labels, labels)
+        scored.append(
+            (
+                score,
+                str(item.get("id", item.get("product_id", ""))),
+                str(item.get("name", "")),
+                str(item.get("image_url", "")),
+            )
+        )
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    best = scored[: max(1, int(top_k))]
+
+    catalog_products = (
+        db.execute(
+            select(Product).where(
+                Product.store_id == store_id,
+                Product.deleted_at.is_(None),
+            )
+        )
+        .scalars()
+        .all()
+    )
+    by_id = {p.id: p for p in catalog_products}
+    by_image_exact: dict[str, Product] = {}
+    by_image_canon: dict[str, Product] = {}
+
+    def _register_image_url(raw_url: str, owner: Product) -> None:
+        u = str(raw_url or "").strip()
+        if not u:
+            return
+        by_image_exact.setdefault(u, owner)
+        ck = _image_url_canonical(u)
+        if ck:
+            by_image_canon.setdefault(ck, owner)
+
+    for p in catalog_products:
+        _register_image_url(str(p.default_image or ""), p)
+
+    for row in db.execute(
+        select(ProductImage.url, ProductImage.product_id).where(ProductImage.store_id == store_id)
+    ).all():
+        url, pid = row[0], row[1]
+        parent = by_id.get(pid)
+        if parent is not None:
+            _register_image_url(str(url or ""), parent)
+
+    for row in db.execute(
+        select(ProductVariant.image, ProductVariant.product_id).where(
+            ProductVariant.store_id == store_id,
+            ProductVariant.deleted_at.is_(None),
+        )
+    ).all():
+        vim, pid = row[0], row[1]
+        if not vim:
+            continue
+        parent = by_id.get(pid)
+        if parent is not None:
+            _register_image_url(str(vim), parent)
+
+    by_name = {str(p.name or "").strip().lower(): p for p in catalog_products if p.name}
+
     out: list[dict] = []
-    import random
-    for i, p in enumerate(products):
-        price = _master_price(p)
-        score = random.uniform(0.7, 0.95) - (i * 0.05)
+    seen_product_ids: set[str] = set()
+    for score, sid, fallback_name, fallback_image in best:
+        p = by_id.get(sid) or by_id.get(f"dim-{_slugify_local(sid)}")
+        if p is None and fallback_image:
+            fi = fallback_image.strip()
+            p = by_image_exact.get(fi)
+            if p is None:
+                ck = _image_url_canonical(fi)
+                if ck:
+                    p = by_image_canon.get(ck)
+        if p is None and fallback_name:
+            p = by_name.get(fallback_name.strip().lower())
+        if p is None and fallback_name:
+            p = (
+                db.execute(
+                    select(Product).where(
+                        Product.store_id == store_id,
+                        Product.deleted_at.is_(None),
+                        Product.name.ilike(f"%{fallback_name}%"),
+                    )
+                )
+                .scalars()
+                .first()
+            )
+        if p is None:
+            continue
+        if p.id in seen_product_ids:
+            continue
+        seen_product_ids.add(p.id)
         out.append(
             {
                 "product_id": p.id,
@@ -273,6 +506,106 @@ def search_products_by_image(
         )
     return out
 
+
+def _search_products_by_image_phash(
+    db: Session,
+    store_id: int,
+    *,
+    image_bytes: bytes,
+    top_k: int,
+) -> list[dict]:
+    """Fallback khi không có metadata/HF: so perceptual hash ảnh query với ảnh default của SP trong catalog."""
+    try:
+        import io
+
+        import imagehash
+        from PIL import Image
+    except ImportError:
+        return []
+
+    try:
+        q_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        q_hash = imagehash.phash(q_img)
+    except Exception:
+        return []
+
+    rows = (
+        db.execute(
+            select(Product)
+            .where(
+                Product.store_id == store_id,
+                Product.deleted_at.is_(None),
+                Product.is_active.is_(True),
+                Product.default_image.isnot(None),
+            )
+            .order_by(Product.rating_avg.desc().nullslast())
+            .limit(PHASH_CATALOG_CAP)
+        )
+        .scalars()
+        .all()
+    )
+
+    def _distance_for_product(p: Product) -> tuple[int, Product] | None:
+        url = str(p.default_image or "").strip()
+        if not url:
+            return None
+        try:
+            r = requests.get(url, timeout=IMAGE_DOWNLOAD_TIMEOUT_SECONDS)
+            r.raise_for_status()
+            oh = imagehash.phash(Image.open(io.BytesIO(r.content)).convert("RGB"))
+            return (int(q_hash - oh), p)
+        except Exception:
+            return None
+
+    scored: list[tuple[int, Product]] = []
+    workers = min(PHASH_MAX_WORKERS, max(1, len(rows)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(_distance_for_product, p) for p in rows]
+        for fut in as_completed(futures):
+            row = fut.result()
+            if row is not None:
+                scored.append(row)
+
+    scored.sort(key=lambda x: x[0])
+    out: list[dict] = []
+    seen: set[str] = set()
+    tk = max(1, int(top_k))
+    for dist, p in scored:
+        if p.id in seen:
+            continue
+        seen.add(p.id)
+        sim = max(0.0, 1.0 - float(dist) / 64.0)
+        out.append(
+            {
+                "product_id": p.id,
+                "name": p.name or "",
+                "image": p.default_image,
+                "price": _master_price(p),
+                "score": round(sim, 6),
+            }
+        )
+        if len(out) >= tk:
+            break
+    return out
+
+
+def search_products_by_image(
+    db: Session,
+    store_id: int,
+    *,
+    image_base64: str,
+    top_k: int = 10,
+) -> list[dict]:
+    blob = _decode_search_image_base64(image_base64)
+    if blob is None:
+        return []
+
+    out = _search_products_by_image_embedding(db, store_id, image_bytes=blob, top_k=top_k)
+    if out:
+        return out[: max(1, int(top_k))]
+
+    out = _search_products_by_image_phash(db, store_id, image_bytes=blob, top_k=top_k)
+    return out[: max(1, int(top_k))]
 
 
 def _catalog_price_expr():

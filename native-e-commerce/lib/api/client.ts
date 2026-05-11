@@ -23,9 +23,9 @@ async function parseBody(res: Response): Promise<unknown> {
 
 export async function apiFetch<T = Json>(
   path: string,
-  init: RequestInit & { skipAuth?: boolean } = {}
+  init: RequestInit & { skipAuth?: boolean; timeoutMs?: number } = {}
 ): Promise<T> {
-  const { skipAuth, headers: hdrs, ...rest } = init;
+  const { skipAuth, timeoutMs, headers: hdrs, ...rest } = init;
   const headers = new Headers(hdrs);
   headers.set('X-Store-Id', STORE_ID);
   const isFormData = typeof FormData !== 'undefined' && rest.body instanceof FormData;
@@ -40,7 +40,8 @@ export async function apiFetch<T = Json>(
 
   const url = joinUrl(path);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const deadlineMs = typeof timeoutMs === 'number' && timeoutMs > 0 ? timeoutMs : API_TIMEOUT_MS;
+  const timeout = setTimeout(() => controller.abort(), deadlineMs);
 
   let res: Response;
   try {
@@ -77,7 +78,11 @@ export function apiGet<T>(path: string, init?: RequestInit & { skipAuth?: boolea
   return apiFetch<T>(path, { ...init, method: 'GET' });
 }
 
-export function apiPost<T>(path: string, json: unknown, init?: RequestInit & { skipAuth?: boolean }) {
+export function apiPost<T>(
+  path: string,
+  json: unknown,
+  init?: RequestInit & { skipAuth?: boolean; timeoutMs?: number }
+) {
   return apiFetch<T>(path, {
     ...init,
     method: 'POST',
