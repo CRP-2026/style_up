@@ -9,17 +9,62 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
-from sqlalchemy import and_, exists, func, select, tuple_
+from sqlalchemy import and_, desc, exists, func, select, tuple_
 from sqlalchemy.orm import Session
 
 from app.db.models import Category, Product, ProductImage, ProductVariant
+
+
+def _fallback_category_images_from_products(db: Session, store_id: int, category_ids: list[str]) -> dict[str, str]:
+    """Ảnh đại diện category khi cột `categories.image` trống: ảnh sản phẩm đầu tiên trong DB (gallery hoặc default_image)."""
+    if not category_ids:
+        return {}
+    prods = (
+        db.execute(
+            select(Product)
+            .where(
+                Product.store_id == store_id,
+                Product.category_id.in_(category_ids),
+                Product.deleted_at.is_(None),
+            )
+            .order_by(
+                Product.category_id.asc(),
+                desc(Product.is_featured),
+                desc(Product.created_at),
+            )
+        )
+        .scalars()
+        .all()
+    )
+    first_by_category: dict[str, Product] = {}
+    for p in prods:
+        cid = p.category_id
+        if cid and cid not in first_by_category:
+            first_by_category[cid] = p
+
+    keys = [(store_id, p.id) for p in first_by_category.values()]
+    imgs = _load_images_bulk(db, keys)
+    out: dict[str, str] = {}
+    for cid, p in first_by_category.items():
+        plist = imgs.get((store_id, p.id), [])
+        url = (plist[0].url if plist else p.default_image or "").strip()
+        if url:
+            out[cid] = url
+    return out
 
 
 def list_categories(db: Session, store_id: int) -> list[dict]:
     rows = db.execute(
         select(Category).where(Category.store_id == store_id, Category.deleted_at.is_(None)).order_by(Category.label)
     ).scalars().all()
-    return [{"id": c.id, "label": c.label, "image": c.image or ""} for c in rows]
+    items = [{"id": c.id, "label": c.label, "image": (c.image or "").strip()} for c in rows]
+    missing = [c["id"] for c in items if not c["image"]]
+    if missing:
+        fb = _fallback_category_images_from_products(db, store_id, missing)
+        for c in items:
+            if not c["image"] and c["id"] in fb:
+                c["image"] = fb[c["id"]]
+    return items
 
 
 def _master_price(p: Product) -> float:

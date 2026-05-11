@@ -25,9 +25,6 @@ import { useAiImageSearch } from '~/features/catalog/hooks/useAiImageSearch';
 import type { Category } from '../../lib/types/models';
 import type { ProductFilter, ProductSummary } from '../../lib/types/products';
 
-const CATEGORY_PLACEHOLDER =
-  'https://images.unsplash.com/photo-1515562140497-ee584338969a?auto=format&fit=crop&w=160&q=60';
-
 const DEFAULT_FILTER: FilterSheetState = {
   size: null,
   color: null,
@@ -86,7 +83,7 @@ export default function ProductCatalogScreen() {
       setActiveCategory(params.categoryId);
     }
     if (params.openCamera === 'true') {
-      setShowImageSourceSheet(true);
+      openSheet();
     }
   }, [params.search, params.categoryId, params.openCamera]);
 
@@ -122,12 +119,7 @@ export default function ProductCatalogScreen() {
             offset: (pageNum - 1) * CATALOG_PAGE_SIZE,
           }),
         ]);
-        setHomeCategories(
-          cats.map((c) => ({
-            ...c,
-            image: c.image && c.image.length > 0 ? c.image : CATEGORY_PLACEHOLDER,
-          }))
-        );
+        setHomeCategories(cats);
         setHomeProducts(prodPage.items);
         setTotalProducts(prodPage.total);
         const pages = Math.max(1, Math.ceil(prodPage.total / CATALOG_PAGE_SIZE));

@@ -51,12 +51,21 @@ export function CategoryList({ categories, selectedId = null, onSelect }: Props)
                 className={`h-[68px] w-[68px] overflow-hidden rounded-full shadow-sm border-2 ${
                   active ? 'border-[#F83758]' : 'border-white'
                 }`}>
-                <Image
-                  source={{ uri: category.image || 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=80' }}
-                  className="h-full w-full"
-                  resizeMode="cover"
-                  defaultSource={{ uri: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=80' }}
-                />
+                {category.image?.trim() ? (
+                  <Image
+                    source={{ uri: category.image.trim() }}
+                    className="h-full w-full"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="h-full w-full items-center justify-center bg-[#F3F4F6]">
+                    <Ionicons
+                      name="image-outline"
+                      size={26}
+                      color={active ? '#F83758' : '#BBBBBB'}
+                    />
+                  </View>
+                )}
               </View>
               <Text
                 className={`mt-2 text-[13px] font-medium ${

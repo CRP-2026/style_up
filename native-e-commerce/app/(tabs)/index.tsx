@@ -1,6 +1,13 @@
 import { Stack, useRouter } from 'expo-router';
-import { ActivityIndicator, ScrollView, Text, View, TouchableOpacity } from 'react-native';
-import { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
 
 import { CategoryList } from '../../components/home/CategoryList';
@@ -27,9 +34,6 @@ import type { Category } from '../../lib/types/models';
 import type { ProductSummary } from '../../lib/types/products';
 import { useAiImageSearch } from '~/features/catalog/hooks/useAiImageSearch';
 
-const CATEGORY_PLACEHOLDER =
-  'https://images.unsplash.com/photo-1515562140497-ee584338969a?auto=format&fit=crop&w=160&q=60';
-
 function ProductCarousel({ products }: { products: ProductSummary[] }) {
   return (
     <ScrollView
@@ -50,7 +54,6 @@ export default function HomeScreen() {
   const router = useRouter();
   const locale = getAppLocale();
   const L = strings(locale);
-  const router = useRouter();
 
   const [homeCategories, setHomeCategories] = useState<Category[]>([]);
   const [homeProducts, setHomeProducts] = useState<ProductSummary[]>([]);
@@ -95,12 +98,7 @@ export default function HomeScreen() {
         : Array.isArray(prods?.items)
           ? prods.items
           : [];
-      setHomeCategories(
-        cats.map((c) => ({
-          ...c,
-          image: c.image && c.image.length > 0 ? c.image : 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=80',
-        }))
-      );
+      setHomeCategories(cats);
       setHomeProducts(products);
     } catch (e) {
       const msg = e instanceof ApiError ? resolveApiError(e, locale) : L.errors.homeLoadFailed;
