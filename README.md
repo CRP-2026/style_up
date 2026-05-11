@@ -4,7 +4,7 @@ A modern, full-stack e-commerce application built with **React Native (Expo)** +
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -34,222 +34,202 @@ Then:
 
 ---
 
-## 📚 Documentation
-
-### Setup & Configuration
-
-- **[SETUP.md](./SETUP.md)** — Complete setup guide for all environments
-- **[ENV.MD](./native-e-commerce/ENV.MD)** — Environment variables reference
-- **[API_TROUBLESHOOTING.md](./API_TROUBLESHOOTING.md)** — Diagnose API issues
-
-### Backend
-
-- **[native-e-commerce-be/README.md](./native-e-commerce-be/README.md)** — API documentation
-- **[native-e-commerce/BE-INSTRUCTION.MD](./native-e-commerce/BE-INSTRUCTION.MD)** — API contract
-
-### Frontend
-
-- **[native-e-commerce/README.md](./native-e-commerce/README.md)** — App structure & development
-
----
-
-## 🐛 "Unable to Reach API Server" Error?
+## 🐛 "Unable to Reach API Server" Error
 
 **Quick fix:**
 
-1. **Backend running?**
+# Style_Up
 
-   ```bash
-   curl http://localhost:8000/api/v1/health
-   ```
+Style_Up is a full-stack e-commerce project with an Expo React Native frontend, a FastAPI backend, and PostgreSQL data scripts.
 
-2. **Correct frontend URL?**
+## Structure
 
-   ```bash
-   grep EXPO_PUBLIC_API_URL native-e-commerce/.env
-   # Should show: http://localhost:8000/api/v1
-   ```
+- `native-e-commerce/`: Expo app, screens, reusable components, feature logic
+- `native-e-commerce-be/`: FastAPI API, Docker Compose, backend docs
+- `database/`: SQL init scripts, seed data, and migrations
+- `scripts/`: environment and smoke-test helpers
 
-3. **Need help?** → See [API_TROUBLESHOOTING.md](./API_TROUBLESHOOTING.md)
+## Config
 
----
+Frontend `.env` in `native-e-commerce/`:
 
-## 🏗️ Project Structure
-
-```
-style_up/
-├── native-e-commerce/          # React Native Expo app
-│   ├── .env                     # Frontend config (required)
-│   ├── app/                     # Expo Router screens
-│   ├── components/              # Reusable UI components
-│   ├── features/                # Feature modules
-│   └── lib/                     # API client, utils, types
-│
-├── native-e-commerce-be/        # FastAPI backend
-│   ├── .env                     # Backend config (required)
-│   ├── docker-compose.yml       # DB + API services
-│   └── app/                     # FastAPI app & models
-│
-├── database/                    # PostgreSQL schemas & migrations
-│   ├── init_database.sql
-│   ├── seed_dev.sql
-│   └── migrations/
-│
-└── scripts/                     # Utility scripts
-    ├── check_dev_env.py         # Validate environment
-    ├── setup_check.py           # Setup verification
-    └── smoke-api-check.mjs      # API smoke test
+```env
+EXPO_PUBLIC_API_URL=http://127.0.0.1:8000/api/v1
+EXPO_PUBLIC_STORE_ID=1
 ```
 
----
+Backend `.env` in `native-e-commerce-be/` should include Postgres settings, `DATABASE_URL`, and auth secrets. See `native-e-commerce-be/README.md` for the full list.
 
-## 🔧 Development Workflow
-
-### Backend Development
+## Run
 
 ```bash
 cd native-e-commerce-be
+docker compose up -d --build
 
-# Start with Docker
-docker-compose up -d
-
-# View logs
-docker-compose logs -f api
-
-# Stop
-docker-compose down
-
-# Reset database
-docker-compose down -v && docker-compose up -d
-```
-
-### Frontend Development
-
-```bash
-cd native-e-commerce
-
-# Start dev server
+cd ../native-e-commerce
+npm install
 npm start
-
-# Run linter
-npm run lint
-
-# Format code
-npm run format
-
-# Test API (no app)
-npm run smoke:api
-
-# Build for production
-eas build --platform android
-eas build --platform ios
 ```
 
----
+- Web: `w`
+- Android: `a`
+- iOS: `i`
 
-## 📱 Device-Specific Setup
+## Tech
 
-| Device               | API URL                          | Notes                       |
-| -------------------- | -------------------------------- | --------------------------- |
-| **Web**              | `http://localhost:8000/api/v1`   | Same machine                |
-| **iOS Simulator**    | `http://localhost:8000/api/v1`   | Same network                |
-| **Android Emulator** | `http://localhost:8000/api/v1`   | Auto-converts to `10.0.2.2` |
-| **Physical Device**  | `http://192.168.x.x:8000/api/v1` | Use your PC's local IP      |
+- Expo SDK 54, Expo Router, TypeScript, NativeWind, Zustand
+- FastAPI, SQLAlchemy, PostgreSQL 15
+- Docker and Docker Compose
 
-See [SETUP.md](./SETUP.md) for detailed instructions per device.
+````
 
----
+## Tech Stack
 
-## 🧪 Testing
+- Expo SDK 54
+- Expo Router v6
+- React Native 0.81 and React 19
+- TypeScript
+- NativeWind
+- Zustand
+- FastAPI
+- SQLAlchemy
+- PostgreSQL 15
+- Docker and Docker Compose
 
-### Validate Setup
+## Project Structure
+
+```text
+Style_Up/
+├── README.md
+├── database/
+│   ├── init_database.sql
+│   ├── seed_dev.sql
+│   └── migrations/
+├── native-e-commerce/
+│   ├── app/
+│   ├── components/
+│   ├── features/
+│   ├── lib/
+│   ├── scripts/
+│   ├── app.json
+│   └── package.json
+├── native-e-commerce-be/
+│   ├── app/
+│   ├── docker-compose.yml
+│   ├── requirements.txt
+│   └── README.md
+└── scripts/
+   └── check_dev_env.py
+````
+
+## Configuration
+
+### Frontend
+
+Create `native-e-commerce/.env` with at least:
+
+```env
+EXPO_PUBLIC_API_URL=http://127.0.0.1:8000/api/v1
+EXPO_PUBLIC_STORE_ID=1
+```
+
+Optional dev-only value:
+
+```env
+EXPO_PUBLIC_DEV_API_PORT=8000
+```
+
+Notes:
+
+- Android emulator usually uses `http://10.0.2.2:8000/api/v1`
+- iOS simulator on macOS usually uses `http://localhost:8000/api/v1`
+- Physical devices need your machine's LAN IP
+
+### Backend
+
+Create `native-e-commerce-be/.env` with the values required by the backend. At minimum, keep these aligned with your local environment:
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=ecommerce
+DATABASE_URL=postgresql://postgres:postgres@db:5432/ecommerce
+SECRET_KEY=change-me
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+```
+
+If you use payment or other optional integrations, review `native-e-commerce-be/README.md` and `scripts/check_dev_env.py` for the full list of expected variables.
+
+## Run the Project
+
+### 1. Start the backend
+
+From the backend folder:
 
 ```bash
-# Check environment configuration
-python scripts/check_dev_env.py
-
-# Verify setup (interactive)
-python scripts/setup_check.py
+cd native-e-commerce-be
+docker compose up -d --build
 ```
 
-### Test API (No App Required)
+If you prefer to run from the repository root, use:
+
+```bash
+docker compose -f native-e-commerce-be/docker-compose.yml up -d --build
+```
+
+This starts:
+
+- API at `http://localhost:8000`
+- PostgreSQL at `localhost:5432`
+
+### 2. Start the frontend
 
 ```bash
 cd native-e-commerce
+npm install
+npm start
+```
+
+Then press:
+
+- `w` for web
+- `a` for Android
+- `i` for iOS
+
+## Test and Validation
+
+### Environment checks
+
+```bash
+python scripts/check_dev_env.py
+```
+
+### Frontend checks
+
+```bash
+cd native-e-commerce
+npm run lint
+npm run format
 npm run smoke:api
 ```
 
-Expected output:
+### Backend checks
 
-```
-✓ API endpoint is accessible
-✓ Login successful
-✓ GET /users/me successful
-✓ GET /addresses successful
-✓ Logout successful
+```bash
+curl http://localhost:8000/api/v1/health
 ```
 
-### Full App Smoke Test (Manual)
+You can also open the backend docs at `http://localhost:8000/docs` after the API is running.
 
-1. **Login** → demo.jewelry@gmail.com / demo123456
-2. **Browse** → View products & categories
-3. **Cart** → Add items, adjust quantities
-4. **Checkout** → Select address, choose payment
-5. **Order** → View order history
-6. **Account** → Edit profile, view addresses
-7. **Logout** → Verify token revocation
+## Main Features
 
----
-
-## 🌍 API Endpoints
-
-### Base URL
-
-```
-/api/v1
-```
-
-### Main Routes
-
-**Catalog**
-
-- `GET /categories`
-- `GET /products?category_id=&search=&limit=10&offset=0`
-- `GET /products/{product_id}`
-
-**Auth**
-
-- `POST /auth/register`
-- `POST /auth/login`
-- `POST /auth/logout` (Bearer)
-
-**Users** (Bearer required)
-
-- `GET /users/me`
-- `PATCH /users/me`
-
-**Addresses** (Bearer required)
-
-- `GET /addresses/`
-- `POST /addresses/`
-- `PUT /addresses/{id}`
-- `DELETE /addresses/{id}`
-
-**Orders** (Bearer required)
-
-- `GET /orders/`
-- `POST /orders/`
-
-See [BE-INSTRUCTION.MD](./native-e-commerce/BE-INSTRUCTION.MD) for full API contract.
-
----
-
-## 🔐 Authentication
-
-- **Header:** `Authorization: Bearer <token>`
-- **Store ID:** `X-Store-Id: 1` (required for all requests)
-- **Token Storage:** AsyncStorage (persisted on device)
-- **Token Revocation:** On logout, token added to revoked list
+- Product catalog and product detail pages
+- Authentication with token storage
+- Address management
+- Cart and checkout flow
+- Order history and order detail
+- Admin and account screens
 
 ---
 
@@ -271,81 +251,11 @@ See [BE-INSTRUCTION.MD](./native-e-commerce/BE-INSTRUCTION.MD) for full API cont
 - **SQLAlchemy** — ORM
 - **Pydantic** — Data validation
 - **JWT** — Token authentication
-
-### DevOps
-
 - **Docker** — Containerization
-- **Docker Compose** — Multi-service orchestration
-
----
-
-## 🚨 Common Issues
-
-### "Unable to reach API server"
-
-→ See [API_TROUBLESHOOTING.md](./API_TROUBLESHOOTING.md)
 
 ### Database connection error
 
 1. Check PostgreSQL is running: `docker-compose ps`
 2. Reset: `docker-compose down -v && docker-compose up -d`
 
-### Port 8000 already in use
-
-```bash
-# Find process using port 8000
-netstat -ano | findstr :8000  # Windows
-lsof -i :8000                 # Mac/Linux
-
-# Kill process or use different port
-```
-
-### Module not found errors
-
-```bash
-cd native-e-commerce
-npm install
-npm run lint
-```
-
----
-
-## 📖 Additional Resources
-
-- [Expo Documentation](https://docs.expo.dev/)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [React Native Documentation](https://reactnative.dev/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [Docker Documentation](https://docs.docker.com/)
-
----
-
-## 👥 Team
-
-- **Frontend:** React Native + Expo
-- **Backend:** FastAPI + PostgreSQL
-- **DevOps:** Docker Compose
-
----
-
-## 📝 License
-
-TBD
-
----
-
-## 🤝 Contributing
-
-1. Create a feature branch: `git checkout -b feature/xyz`
-2. Follow code style: `npm run lint && npm run format`
-3. Test changes: Run smoke tests
-4. Create PR with description
-
----
-
-## ❓ Need Help?
-
-1. **Setup issues?** → [SETUP.md](./SETUP.md)
-2. **API connectivity?** → [API_TROUBLESHOOTING.md](./API_TROUBLESHOOTING.md)
-3. **Environment config?** → [ENV.MD](./native-e-commerce/ENV.MD)
-4. **API contract?** → [BE-INSTRUCTION.MD](./native-e-commerce/BE-INSTRUCTION.MD)
+--
