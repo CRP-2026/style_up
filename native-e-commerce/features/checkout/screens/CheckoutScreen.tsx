@@ -145,13 +145,24 @@ export default function CheckoutScreen() {
       });
       clearCart();
       addToast('success', L.checkout.successTitle, L.checkout.successMessage);
-      router.push({
-        pathname: '/payment-qr' as any,
-        params: {
-          orderId: created.id,
-          promoCode: promoCode ?? undefined,
-        },
-      });
+      if (selectedPaymentMethodId === 'wallet') {
+        router.push({
+          pathname: '/payment-qr' as any,
+          params: {
+            orderId: created.id,
+            promoCode: promoCode ?? undefined,
+          },
+        });
+      } else {
+        router.replace({
+          pathname: '/checkout-success',
+          params: {
+            orderId: created.id,
+            promoCode: promoCode ?? undefined,
+            paymentStatus: created.paymentStatus ?? 'pending',
+          },
+        });
+      }
     } catch (e) {
       const msg = resolveApiError(e, locale);
       addToast('error', L.common.error, msg);
