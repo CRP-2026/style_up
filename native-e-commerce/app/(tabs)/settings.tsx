@@ -1,10 +1,11 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View, Image } from 'react-native';
 
 import { resetOnboardingSeen } from '~/lib/onboardingStorage';
 import { useToast } from '~/components/ToastProvider';
+import { useUserStore } from '~/lib/store/userStore';
 
 type MenuItem = {
   icon: keyof typeof Feather.glyphMap;
@@ -19,6 +20,7 @@ type MenuItem = {
 export default function Settings() {
   const router = useRouter();
   const { addToast } = useToast();
+  const user = useUserStore();
 
   const handleResetOnboarding = async () => {
     await resetOnboardingSeen();
@@ -29,6 +31,7 @@ export default function Settings() {
     { icon: 'user', label: 'Tài khoản của tôi', sublabel: 'Thông tin cá nhân', path: '/account/edit', color: '#F83758' },
     { icon: 'map-pin', label: 'Địa chỉ giao hàng', sublabel: 'Quản lý địa chỉ', path: '/addresses', color: '#8B5CF6' },
     { icon: 'shopping-bag', label: 'Đơn hàng của tôi', sublabel: 'Lịch sử mua hàng', path: '/(tabs)/order', color: '#F97316' },
+    { icon: 'shield', label: 'Trang Quản trị (Admin)', sublabel: 'Quản lý sản phẩm & đơn hàng', path: '/admin', color: '#7C3AED', badge: 'ADMIN' },
   ];
 
   const appItems: MenuItem[] = [
@@ -95,12 +98,16 @@ export default function Settings() {
             className="rounded-[20px] p-5"
             style={{ backgroundColor: '#F83758' }}>
             <View className="flex-row items-center gap-4">
-              <View className="h-16 w-16 items-center justify-center rounded-full bg-white/20">
-                <Feather name="user" size={28} color="white" />
+              <View className="h-16 w-16 items-center justify-center rounded-full bg-white/20 overflow-hidden">
+                {user.avatar ? (
+                  <Image source={{ uri: user.avatar }} className="h-full w-full" />
+                ) : (
+                  <Feather name="user" size={28} color="white" />
+                )}
               </View>
               <View className="flex-1">
-                <Text className="text-[18px] font-bold text-white">Style Up</Text>
-                <Text className="text-[13px] text-white/80">Trang sức cao cấp</Text>
+                <Text className="text-[18px] font-bold text-white">{user.name}</Text>
+                <Text className="text-[13px] text-white/80">{user.bio}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => router.push('/account/edit' as any)}

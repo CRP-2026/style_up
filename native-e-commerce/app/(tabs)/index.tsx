@@ -1,13 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
-import {
-  ActivityIndicator,
-  FlatList,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, Text, View, TouchableOpacity } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
 
 import { CategoryList } from '../../components/home/CategoryList';
@@ -57,6 +50,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const locale = getAppLocale();
   const L = strings(locale);
+  const router = useRouter();
 
   const [homeCategories, setHomeCategories] = useState<Category[]>([]);
   const [homeProducts, setHomeProducts] = useState<ProductSummary[]>([]);
@@ -206,10 +200,12 @@ export default function HomeScreen() {
             </View>
           ) : (
             <>
-              <CategoryList
-                categories={homeCategories}
-                selectedId={activeCategory}
-                onSelect={setActiveCategory}
+              <CategoryList 
+                categories={homeCategories} 
+                onSelect={(id) => {
+                  if (id) router.push({ pathname: '/(tabs)/product', params: { categoryId: id } });
+                  else router.push('/(tabs)/product');
+                }}
               />
               <HeroPromoBanner />
               <SectionBadge

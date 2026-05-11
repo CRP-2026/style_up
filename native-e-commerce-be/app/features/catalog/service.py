@@ -498,10 +498,10 @@ def _search_products_by_image_embedding(
         out.append(
             {
                 "product_id": p.id,
-                "name": p.name or fallback_name,
-                "image": p.default_image or fallback_image,
-                "price": _master_price(p),
-                "score": round(float(score), 6),
+                "name": p.name,
+                "image": p.default_image,
+                "price": price,
+                "score": round(max(0.5, score), 4),
             }
         )
     return out
